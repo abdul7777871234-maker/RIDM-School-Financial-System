@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { School, LogIn, ShieldAlert, ShieldCheck } from 'lucide-react';
-import { isConvexConfigured } from '@/lib/convex';
-
+import { supabase } from '@/lib/supabase';
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -26,28 +25,19 @@ export default function Login() {
       // Map username to an email format for auth, or use directly if it is already an email
       const systemEmail = username.includes('@') ? username : `${username.toLowerCase()}@ridm.system`;
 
-      const isAllowedAdmin = (
-        systemEmail === 'admin@ridm.system' || 
-        systemEmail === 'ridmsfs@ridm.system' || 
-        systemEmail === 'ridmacademy@gmail.com' || 
-        systemEmail === 'abdul7777871234@gmail.com'
-      );
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: systemEmail,
+        password,
+      });
 
-      if (isAllowedAdmin && (password === 'Admin@123' || password === 'admin')) {
-        const suffix = isConvexConfigured() ? '' : ' (Offline Mode)';
-        localStorage.setItem('ridm_local_session', JSON.stringify({
-          uid: 'admin-user',
-          email: systemEmail,
-          displayName: `RIDM SFS Admin${suffix}`,
-          role: 'super_admin'
-        }));
-        window.location.replace('/');
-        return;
-      } else {
+      if (authError) {
         setError('Authentication failed. Invalid system credentials.');
         setLoading(false);
         return;
       }
+      
+      window.location.replace('/');
+      return;
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Access sequence failed. Tactical override required.');

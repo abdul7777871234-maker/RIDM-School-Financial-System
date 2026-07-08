@@ -339,123 +339,33 @@ const mapSettingsToDb = (s: SchoolSettings) => ({
   theme: s.theme
 });
 
-// Auto-seed function to make it completely zero-friction for the user
-let isSeeded = false;
-let seedingPromise: Promise<void> | null = null;
-export async function seedConvexIfNeeded() {
-  console.log('seedConvexIfNeeded called', { isSeeded, isConfigured: isConvexConfigured() });
-  if (isSeeded || !isConvexConfigured()) return;
-  if (seedingPromise) return seedingPromise;
-  
-  console.log('Running seedConvexIfNeeded...');
-  seedingPromise = (async () => {
-    try {
-      console.log('Checking if database needs seeding...');
-      // Check if seeded based on settings
-      const { data: settings, error } = await supabase.from('settings').select('*');
-      if (error) throw error;
-      const data = settings && settings.length > 0 ? settings[0] : null;
-      if (settings && settings.length > 0) {
-        console.log('Database already seeded, skipping.');
-        isSeeded = true;
-        return;
-      }
-      console.log('Database empty or error during check, seeding Convex with default initial records...');
-      
-      // Seed default settings
-      const { error: settingsError } = await supabase.from('settings').upsert(mapSettingsToDb(DEFAULT_SETTINGS));
-      if (settingsError) throw settingsError;
-      console.log('Settings seeded.');
-
-      // Seed default students
-      for (const s of DEFAULT_STUDENTS) {
-        await mutationWithTimeout("students:add", mapStudentToDb(s));
-      }
-      console.log('Students seeded.');
-
-      // Seed default payments
-      for (const p of DEFAULT_PAYMENTS) {
-        await mutationWithTimeout("payments:add", mapPaymentToDb(p));
-      }
-      console.log('Payments seeded.');
-
-      // Seed default refunds
-      for (const r of DEFAULT_REFUNDS) {
-        await mutationWithTimeout("refunds:add", mapRefundToDb(r));
-      }
-      console.log('Refunds seeded.');
-
-      // Seed default plans
-      for (const pl of DEFAULT_INSTALLMENT_PLANS) {
-        await mutationWithTimeout("installment_plans:add", mapPlanToDb(pl));
-      }
-      console.log('Plans seeded.');
-
-      // Seed default logs
-      for (const l of DEFAULT_AUDIT_LOGS) {
-        await mutationWithTimeout("audit_logs:add", mapLogToDb(l));
-      }
-      console.log('Logs seeded.');
-      
-      isSeeded = true;
-    } catch (err) {
-      console.error('Failed to auto-seed Convex:', err);
-    } finally {
-      seedingPromise = null;
-    }
-  })();
-  
-  return seedingPromise;
-}
 
 // 1. STUDENTS API
 export async function getStudents(): Promise<Student[]> {
-  if (isConvexConfigured()) {
-    try {
-      await seedConvexIfNeeded();
-      const data: any[] = await queryWithTimeout("students:get");
-      if (data) {
-        return data.map(mapStudentFromDb);
-      }
-    } catch (err) {
-      console.error('Convex query error for students:', err);
-    }
+  const { data: students, error } = await supabase.from('students').select('*');
+  if (error) {
+    console.error('Error fetching students:', error);
+    return [];
   }
-  initializeLocalDb();
-  return getStoredItem<Student[]>('ridm_students', DEFAULT_STUDENTS);
+  return students.map(mapStudentFromDb);
 }
 
 export async function getStudentById(id: string): Promise<Student | null> {
-  if (isConvexConfigured()) {
-    try {
-      const data: any = await queryWithTimeout("students:getById", { id });
-      if (data) {
-        return mapStudentFromDb(data);
-      }
-    } catch (err) {
-      console.error('Convex getStudentById error:', err);
-    }
-  }
   const students = await getStudents();
   return students.find(s => s.id === id || s.studentId === id) || null;
 }
 
 export async function addStudent(studentData: Partial<Student>): Promise<Student> {
-  const totalFee = Number(studentData.totalFee) || 0;
-  const totalPaid = Number(studentData.totalPaid) || 0;
-  const balance = Math.max(0, totalFee - totalPaid);
-  const studentId = studentData.studentId || `R-${Math.floor(100 + Math.random() * 900)}`;
-
   const newStudent: Student = {
     id: studentData.id || `s_${Date.now()}`,
-    studentId,
+    studentId: studentData.studentId || `R-${Math.floor(100 + Math.random() * 900)}`,
     name: studentData.name || 'Unknown Student',
     class: studentData.class || 'N/A',
     parentName: studentData.parentName || 'N/A',
     parentContact: studentData.parentContact || 'N/A',
-    totalFee,
-    totalPaid,
-    remainingBalance: balance,
+    totalFee: Number(studentData.totalFee) || 0,
+    totalPaid: Number(studentData.totalPaid) || 0,
+    remainingBalance: Math.max(0, (Number(studentData.totalFee) || 0) - (Number(studentData.totalPaid) || 0)),
     admissionDate: studentData.admissionDate || Date.now(),
     status: studentData.status || 'active',
     rollNumber: studentData.rollNumber,
@@ -464,114 +374,59 @@ export async function addStudent(studentData: Partial<Student>): Promise<Student
     lastPaymentDate: studentData.lastPaymentDate
   };
 
-  if (isConvexConfigured()) {
-    try {
-      await mutationWithTimeout("students:add", mapStudentToDb(newStudent));
-      return newStudent;
-    } catch (err) {
-      console.error('Convex addStudent error:', err);
-    }
+  const { error } = await supabase.from('students').insert(mapStudentToDb(newStudent));
+  if (error) {
+    console.error('Supabase addStudent error:', error);
+    throw error;
   }
-
-  const students = await getStudents();
-  students.push(newStudent);
-  setStoredItem('ridm_students', students);
   return newStudent;
 }
 
 export async function updateStudent(studentData: Student): Promise<void> {
-  if (isConvexConfigured()) {
-    try {
-      await mutationWithTimeout("students:update", {
-        id: studentData.id,
-        updates: mapStudentToDb(studentData)
-      });
-      return;
-    } catch (err) {
-      console.error('Convex updateStudent error:', err);
-    }
-  }
-
-  const students = await getStudents();
-  const index = students.findIndex(s => s.id === studentData.id);
-  if (index !== -1) {
-    students[index] = studentData;
-    setStoredItem('ridm_students', students);
+  const { error } = await supabase.from('students').update(mapStudentToDb(studentData)).eq('id', studentData.id);
+  if (error) {
+    console.error('Supabase updateStudent error:', error);
+    throw error;
   }
 }
 
 export async function updateStudentPaymentPlan(id: string, studentId: string, plan: 'Monthly' | 'Semester' | 'Annual' | 'Full Payment'): Promise<void> {
-  if (isConvexConfigured()) {
-    try {
-      await convex.mutation("students:update" as any, {
-        id: id,
-        updates: { payment_plan: plan }
-      });
-      return;
-    } catch (err) {
-      console.error('Convex updateStudentPaymentPlan error:', err);
-    }
-  }
-
-  const students = await getStudents();
-  const index = students.findIndex(s => s.id === id || s.studentId === id);
-  if (index !== -1) {
-    students[index].paymentPlan = plan;
-    setStoredItem('ridm_students', students);
+  const { error } = await supabase.from('students').update({ payment_plan: plan }).eq('id', id);
+  if (error) {
+    console.error('Supabase updateStudentPaymentPlan error:', error);
+    throw error;
   }
 }
 
 export async function deleteStudent(studentId: string, customStudentIdField?: string): Promise<void> {
-  if (isConvexConfigured()) {
-    try {
-      await mutationWithTimeout("students:deleteStudent", { id: studentId });
-    } catch (err) {
-      console.error('Convex deleteStudent error:', err);
-    }
+  const { error } = await supabase.from('students').delete().eq('id', studentId);
+  if (error) {
+    console.error('Supabase deleteStudent error:', error);
+    throw error;
   }
-
-  const students = await getStudents();
-  const filteredStudents = students.filter(s => s.id !== studentId && s.studentId !== studentId);
-  setStoredItem('ridm_students', filteredStudents);
-
+  
   if (customStudentIdField) {
-    const payments = await getPayments();
-    const filteredPayments = payments.filter(p => p.studentId !== customStudentIdField);
-    setStoredItem('ridm_payments', filteredPayments);
+      await supabase.from('payments').delete().eq('student_id', customStudentIdField);
   }
 }
 
 // 2. PAYMENTS API
 export async function getPayments(): Promise<Payment[]> {
-  if (isConvexConfigured()) {
-    try {
-      await seedConvexIfNeeded();
-      const data: any[] = await convex.query("payments:get" as any);
-      if (data) {
-        return data.map(mapPaymentFromDb);
-      }
-    } catch (err) {
-      console.error('Convex getPayments error:', err);
-    }
+  const { data: payments, error } = await supabase.from('payments').select('*');
+  if (error) {
+    console.error('Error fetching payments:', error);
+    return [];
   }
-  initializeLocalDb();
-  return getStoredItem<Payment[]>('ridm_payments', DEFAULT_PAYMENTS);
+  return payments.map(mapPaymentFromDb);
 }
 
 export async function getPaymentsByStudentId(studentId: string): Promise<Payment[]> {
-  if (isConvexConfigured()) {
-    try {
-      const data: any[] = await convex.query("payments:get" as any);
-      if (data) {
-        const filtered = data.filter((p: any) => p.student_id === studentId);
-        return filtered.map(mapPaymentFromDb);
-      }
-    } catch (err) {
-      console.error('Convex getPaymentsByStudentId error:', err);
-    }
+  const { data: payments, error } = await supabase.from('payments').select('*').eq('student_id', studentId);
+  if (error) {
+    console.error('Error fetching payments by student id:', error);
+    return [];
   }
-  const payments = await getPayments();
-  return payments.filter(p => p.studentId === studentId);
+  return payments.map(mapPaymentFromDb);
 }
 
 export async function addPayment(paymentData: Omit<Payment, 'id'>): Promise<Payment> {
@@ -582,83 +437,28 @@ export async function addPayment(paymentData: Omit<Payment, 'id'>): Promise<Paym
     status: paymentData.status || 'success'
   };
 
-  if (isConvexConfigured()) {
-    try {
-      await mutationWithTimeout("payments:add", mapPaymentToDb(newPayment));
-      
-      // Increment total_paid and update remaining_balance
-      const student: any = await queryWithTimeout("students:getById", { id: paymentData.studentId });
-      if (student) {
-        const currentPaid = Number(student.total_paid) || 0;
-        const currentFee = Number(student.total_fee) || 0;
-        const updatedPaid = currentPaid + Number(paymentData.amount);
-        const updatedBalance = Math.max(0, currentFee - updatedPaid);
-        await mutationWithTimeout("students:update", {
-          id: student.id,
-          updates: {
-            total_paid: updatedPaid,
-            remaining_balance: updatedBalance,
-            last_payment_date: Date.now()
-          }
-        });
-      }
-      return newPayment;
-    } catch (err) {
-      console.error('Convex addPayment error:', err);
-    }
+  const { error } = await supabase.from('payments').insert(mapPaymentToDb(newPayment));
+  if (error) {
+    console.error('Supabase addPayment error:', error);
+    throw error;
   }
 
-  const payments = await getPayments();
-  payments.unshift(newPayment);
-  setStoredItem('ridm_payments', payments);
-
   // Adjust student's paid amount and outstanding balance
-  const students = await getStudents();
-  const studentIndex = students.findIndex(s => s.studentId === paymentData.studentId);
-  if (studentIndex !== -1) {
-    const s = students[studentIndex];
-    s.totalPaid = (Number(s.totalPaid) || 0) + Number(paymentData.amount);
-    s.remainingBalance = Math.max(0, (Number(s.totalFee) || 0) - s.totalPaid);
-    s.lastPaymentDate = Date.now();
-    setStoredItem('ridm_students', students);
+  const { data: student, error: studentError } = await supabase.from('students').select('*').eq('student_id', paymentData.studentId).single();
+  if (student) {
+    const updatedPaid = (Number(student.total_paid) || 0) + Number(paymentData.amount);
+    const updatedBalance = Math.max(0, (Number(student.total_fee) || 0) - updatedPaid);
+    await supabase.from('students').update({
+      total_paid: updatedPaid,
+      remaining_balance: updatedBalance,
+      last_payment_date: Date.now()
+    }).eq('id', student.id);
   }
 
   return newPayment;
 }
 
 export async function refundPayment(paymentId: string): Promise<void> {
-  if (isConvexConfigured()) {
-    try {
-      const payments: any[] = await convex.query("payments:get" as any);
-      const pData = payments.find((p: any) => p.id === paymentId);
-      if (pData) {
-        await mutationWithTimeout("payments:add", {
-          ...pData,
-          status: 'refunded'
-        });
-        
-        // Revert student record
-        const student: any = await queryWithTimeout("students:getById", { id: pData.student_id });
-        if (student) {
-          const currentPaid = Number(student.total_paid) || 0;
-          const currentFee = Number(student.total_fee) || 0;
-          const updatedPaid = Math.max(0, currentPaid - Number(pData.amount));
-          const updatedBalance = Math.max(0, currentFee - updatedPaid);
-          await mutationWithTimeout("students:update", {
-            id: student.id,
-            updates: {
-              total_paid: updatedPaid,
-              remaining_balance: updatedBalance
-            }
-          });
-        }
-        return;
-      }
-    } catch (err) {
-      console.error('Convex refundPayment error:', err);
-    }
-  }
-
   const payments = await getPayments();
   const index = payments.findIndex(p => p.id === paymentId);
   if (index !== -1) {
@@ -686,63 +486,6 @@ export async function processRefund(
   reason: string, 
   processedBy: string
 ): Promise<void> {
-  if (isConvexConfigured()) {
-    try {
-      const payments: any[] = await convex.query("payments:get" as any);
-      const p = payments.find((pay: any) => pay.id === paymentId);
-      if (!p) throw new Error("Payment record not found");
-
-      const paidAmt = Number(p.amount) || 0;
-      if (refundAmount > paidAmt) {
-        throw new Error("Refund amount exceeds paid amount");
-      }
-
-      // Revert student record
-      const student: any = await queryWithTimeout("students:getById", { id: p.student_id });
-      if (student) {
-        const currentPaid = Number(student.total_paid) || 0;
-        const currentFee = Number(student.total_fee) || 0;
-        const updatedPaid = Math.max(0, currentPaid - refundAmount);
-        const updatedBalance = Math.max(0, currentFee - updatedPaid);
-        await convex.mutation("students:update" as any, {
-          id: student.id,
-          updates: {
-            total_paid: updatedPaid,
-            remaining_balance: updatedBalance
-          }
-        });
-      }
-
-      // Add Refund Record
-      const newRefund: RefundRecord = {
-        id: `ref_${Date.now()}`,
-        studentId: p.student_id,
-        studentName: p.student_name,
-        paymentId,
-        originalPaidAmount: paidAmt,
-        refundType,
-        refundPercentage,
-        refundAmount,
-        remainingRetainedAmount: paidAmt - refundAmount,
-        date: Date.now(),
-        reason,
-        processedBy
-      };
-      await mutationWithTimeout("refunds:add", mapRefundToDb(newRefund));
-
-      // Update payment status/amount
-      const remaining = paidAmt - refundAmount;
-      await mutationWithTimeout("payments:add", {
-        ...p,
-        status: remaining === 0 ? 'refunded' : p.status,
-        amount: remaining
-      });
-      return;
-    } catch (err) {
-      console.error('Convex processRefund error:', err);
-    }
-  }
-
   const payments = await getPayments();
   const index = payments.findIndex(p => p.id === paymentId);
   if (index === -1) throw new Error("Payment record not found");
@@ -792,61 +535,22 @@ export async function processRefund(
 }
 
 export async function getRefunds(): Promise<RefundRecord[]> {
-  if (isConvexConfigured()) {
-    try {
-      await seedConvexIfNeeded();
-      const data: any[] = await queryWithTimeout("refunds:get");
-      if (data) {
-        return data.map(mapRefundFromDb);
-      }
-    } catch (err) {
-      console.error('Convex getRefunds error:', err);
-    }
-  }
   initializeLocalDb();
   return getStoredItem<RefundRecord[]>('ridm_refunds', DEFAULT_REFUNDS);
 }
 
 export async function deleteRefund(refundId: string): Promise<void> {
-  if (isConvexConfigured()) {
-    try {
-      await mutationWithTimeout("refunds:deleteRefund", { id: refundId });
-      return;
-    } catch (err) {
-      console.error('Convex deleteRefund error:', err);
-    }
-  }
-  initializeLocalDb();
-  const refunds = getStoredItem<RefundRecord[]>('ridm_refunds', DEFAULT_REFUNDS);
+  const refunds = await getRefunds();
   const updated = refunds.filter(r => r.id !== refundId);
   setStoredItem('ridm_refunds', updated);
 }
 
 export async function clearAllRefunds(): Promise<void> {
-  if (isConvexConfigured()) {
-    try {
-      await mutationWithTimeout("refunds:deleteAll");
-      return;
-    } catch (err) {
-      console.error('Convex clearAllRefunds error:', err);
-    }
-  }
   setStoredItem('ridm_refunds', []);
 }
 
 // 3. INSTALLMENTS API
 export async function getInstallmentPlans(): Promise<InstallmentPlan[]> {
-  if (isConvexConfigured()) {
-    try {
-      await seedConvexIfNeeded();
-      const data: any[] = await queryWithTimeout("installment_plans:get");
-      if (data) {
-        return data.map(mapPlanFromDb);
-      }
-    } catch (err) {
-      console.error('Convex getInstallmentPlans error:', err);
-    }
-  }
   initializeLocalDb();
   return getStoredItem<InstallmentPlan[]>('ridm_installment_plans', DEFAULT_INSTALLMENT_PLANS);
 }
@@ -857,15 +561,6 @@ export async function addInstallmentPlan(planData: Omit<InstallmentPlan, 'id'>):
     ...planData
   };
 
-  if (isConvexConfigured()) {
-    try {
-      await mutationWithTimeout("installment_plans:add", mapPlanToDb(newPlan));
-      return newPlan;
-    } catch (err) {
-      console.error('Convex addInstallmentPlan error:', err);
-    }
-  }
-
   const plans = await getInstallmentPlans();
   plans.push(newPlan);
   setStoredItem('ridm_installment_plans', plans);
@@ -874,17 +569,6 @@ export async function addInstallmentPlan(planData: Omit<InstallmentPlan, 'id'>):
 
 // 4. AUDIT LOGS API
 export async function getAuditLogs(): Promise<AuditLog[]> {
-  if (isConvexConfigured()) {
-    try {
-      await seedConvexIfNeeded();
-      const data: any[] = await queryWithTimeout("audit_logs:get");
-      if (data) {
-        return data.map(mapLogFromDb);
-      }
-    } catch (err) {
-      console.error('Convex getAuditLogs error:', err);
-    }
-  }
   initializeLocalDb();
   return getStoredItem<AuditLog[]>('ridm_audit_logs', DEFAULT_AUDIT_LOGS);
 }
@@ -898,22 +582,13 @@ export async function addAuditLog(userId: string, userName: string, action: stri
     date: Date.now()
   };
 
-  if (isConvexConfigured()) {
-    try {
-      await mutationWithTimeout("audit_logs:add", mapLogToDb(newLog));
-      return newLog;
-    } catch (err) {
-      console.error('Convex addAuditLog error:', err);
-    }
-  }
-
   const logs = await getAuditLogs();
   logs.unshift(newLog);
   setStoredItem('ridm_audit_logs', logs);
   return newLog;
 }
 
-// 5. USERS API
+// 5. USERS API (Already uses localStorage)
 export async function getUsers(): Promise<UserProfile[]> {
   initializeLocalDb();
   return getStoredItem<UserProfile[]>('ridm_users', DEFAULT_USERS);
@@ -946,32 +621,11 @@ export async function updateUserStatus(uid: string, status: 'active' | 'inactive
 
 // 6. SETTINGS API
 export async function getSettings(): Promise<SchoolSettings> {
-  if (isConvexConfigured()) {
-    try {
-      await seedConvexIfNeeded();
-      const data: any = await queryWithTimeout("settings:get", {}, 60000);
-      if (data && data.length > 0) {
-        return mapSettingsFromDb(data[0]);
-      }
-      return DEFAULT_SETTINGS;
-    } catch (err) {
-      console.error('Convex getSettings error:', err);
-    }
-  }
   initializeLocalDb();
   return getStoredItem<SchoolSettings>('ridm_settings', DEFAULT_SETTINGS);
 }
 
 export async function saveSettings(settings: SchoolSettings): Promise<void> {
-  if (isConvexConfigured()) {
-    try {
-      await mutationWithTimeout("settings:save", mapSettingsToDb(settings));
-      if (isBrowser()) window.dispatchEvent(new Event('settings-updated'));
-      return;
-    } catch (err) {
-      console.error('Convex saveSettings error:', err);
-    }
-  }
   setStoredItem('ridm_settings', settings);
   if (isBrowser()) window.dispatchEvent(new Event('settings-updated'));
 }

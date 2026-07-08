@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getSettings } from '@/lib/localDb';
-import { isConvexConfigured } from '@/lib/convex';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -264,10 +263,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               <span className={cn(
                 "absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm z-10",
-                isConvexConfigured() 
-                  ? "bg-emerald-500" 
-                  : "bg-amber-500 animate-pulse"
-              )} title={isConvexConfigured() ? "Online Database Connected" : "Offline Local Mode"} />
+                "bg-emerald-500"
+              )} title="Database Connected" />
             </label>
             <div className="flex-1 min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <p className="text-sm font-bold text-gray-900 truncate">{profile.displayName || profile.email}</p>

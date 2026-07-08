@@ -17,9 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 import { SchoolSettings } from '@/types';
 import Link from 'next/link';
-import { isConvexConfigured, getConvexUrl, updateConvexClient } from '@/lib/convex';
 import { Database } from 'lucide-react';
-
 export default function Settings() {
   const [settings, setSettings] = useState<SchoolSettings>({
     schoolName: '',
@@ -33,11 +31,8 @@ export default function Settings() {
     new: '',
     confirm: ''
   });
-  const [convexUrl, setConvexUrl] = useState('');
-  const convexConnected = isConvexConfigured();
 
   useEffect(() => {
-    setConvexUrl(getConvexUrl());
     const fetchSettings = async () => {
       try {
         const data = await getSettings();
@@ -311,74 +306,6 @@ export default function Settings() {
               <p className="text-xs text-orange-700 font-bold leading-relaxed tracking-tight uppercase">
                 Currency changes will update all dashboard figures instantly across the institution.
               </p>
-            </div>
-          </div>
-        </Section>
-
-        <Section 
-          title="Convex Database Status" 
-          description="Production-grade serverless cloud database hosting integration."
-          icon={Database}
-        >
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 rounded-2xl border border-gray-100 bg-gray-50/50 gap-4">
-              <div className="flex items-center gap-4">
-                <div className={cn(
-                  "w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner",
-                  convexConnected ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"
-                )}>
-                  <Database size={24} />
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-gray-950 flex items-center flex-wrap gap-2">
-                    Database Driver: 
-                    <span className={cn(
-                      "text-[10px] px-2.5 py-1 rounded-full font-extrabold uppercase tracking-wide",
-                      convexConnected ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
-                    )}>
-                      {convexConnected ? 'Convex Online Connected' : 'Offline Local Storage'}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-gray-400 font-medium mt-1">
-                    {convexConnected 
-                      ? 'Secure production-ready serverless cloud connection established successfully.' 
-                      : 'Provide your Convex cloud URL below to switch from offline storage to live cloud database storage.'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4 pt-4 border-t border-gray-50">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-700 ml-1">Convex Deployment HTTP URL</label>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <input 
-                    type="text"
-                    className="flex-1 px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 font-medium font-sans text-sm"
-                    value={convexUrl}
-                    onChange={(e) => setConvexUrl(e.target.value)}
-                    placeholder="https://your-project-name-123.convex.cloud"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!convexUrl.trim() || !convexUrl.startsWith('http')) {
-                        alert('Please enter a valid HTTP/HTTPS Convex URL.');
-                        return;
-                      }
-                      updateConvexClient(convexUrl.trim());
-                      alert('Convex cloud connection string updated successfully! Re-initializing database services...');
-                      window.location.reload();
-                    }}
-                    className="px-6 py-4 bg-purple-600 text-white font-black rounded-2xl hover:bg-purple-700 transition-colors shadow-lg shadow-purple-100 text-sm whitespace-nowrap active:scale-[0.98]"
-                  >
-                    Connect URL
-                  </button>
-                </div>
-                <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider ml-1 mt-1">
-                  Example: https://capable-alligator-492.convex.cloud/
-                </p>
-              </div>
             </div>
           </div>
         </Section>

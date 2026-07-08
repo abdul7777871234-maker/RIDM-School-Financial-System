@@ -1,11 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { User } from '@supabase/supabase-js';
 import { UserProfile } from '@/types';
-import { isConvexConfigured } from '@/lib/convex';
 
 interface AuthContextType {
-  user: any;
+  user: User | null;
   profile: UserProfile | null;
   loading: boolean;
   logout: () => Promise<void>;
@@ -21,92 +22,57 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initAuth = async () => {
-      if (typeof window !== 'undefined') {
-        const localSess = localStorage.getItem('ridm_local_session');
-        if (localSess) {
-          try {
-            const parsed = JSON.parse(localSess);
-            if (parsed && parsed.email) {
-              const suffix = isConvexConfigured() ? '' : ' (Offline Mode)';
-              const displayName = parsed.displayName ? parsed.displayName.replace(' (Offline Mode)', '') + suffix : parsed.email.split('@')[0] + suffix;
-              
-              setUser({
-                uid: parsed.uid || 'admin',
-                email: parsed.email,
-                displayName: displayName,
-                emailVerified: true,
-                photoURL: parsed.photoURL || undefined
-              });
-              setProfile({
-                uid: parsed.uid || 'admin',
-                email: parsed.email,
-                displayName: displayName,
-                role: parsed.role || 'super_admin',
-                status: 'active',
-                isVerified: true,
-                createdAt: parsed.createdAt || Date.now(),
-                photoURL: parsed.photoURL || undefined
-              });
-              setLoading(false);
-              return;
-            }
-          } catch (e) {
-            console.error('Failed parsing local session:', e);
-          }
-        }
+    // 1. Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setLoading(false);
       }
+    });
 
-      setUser(null);
-      setProfile(null);
-      setLoading(false);
-    };
+    // 2. Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
+    });
 
-    initAuth();
+    return () => subscription.unsubscribe();
   }, []);
 
-  const logout = async () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('ridm_local_session');
+  const fetchProfile = async (uid: string) => {
+    try {
+      const { data, error } = await supabase.from('users').select('*').eq('id', uid).single();
+      if (error) {
+        console.error('Error fetching profile:', error);
+      } else {
+        setProfile(data as UserProfile);
+      }
+    } catch (err) {
+      console.error('Error in fetchProfile:', err);
+    } finally {
+      setLoading(false);
     }
-    setUser(null);
-    setProfile(null);
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
   };
 
   const updateProfilePhoto = async (photoURL: string) => {
-    if (typeof window !== 'undefined') {
-      const localSess = localStorage.getItem('ridm_local_session');
-      if (localSess) {
-        try {
-          const parsed = JSON.parse(localSess);
-          parsed.photoURL = photoURL;
-          localStorage.setItem('ridm_local_session', JSON.stringify(parsed));
-          
-          setUser((prev: any) => prev ? { ...prev, photoURL } : null);
-          setProfile((prev: any) => prev ? { ...prev, photoURL } : null);
-          
-          // Also update it in the ridm_users central storage if this user exists there
-          const storedUsersStr = localStorage.getItem('ridm_users');
-          if (storedUsersStr) {
-            const users = JSON.parse(storedUsersStr);
-            const index = users.findIndex((u: any) => u.email === parsed.email || u.uid === parsed.uid);
-            if (index !== -1) {
-              users[index].photoURL = photoURL;
-              localStorage.setItem('ridm_users', JSON.stringify(users));
-            }
-          }
-          
-          window.dispatchEvent(new Event('profile-updated'));
-        } catch (e) {
-          console.error('Error updating profile photo:', e);
-        }
-      }
-    }
+    // Implementation can be moved to Supabase storage in the future
+    console.warn('updateProfilePhoto needs migration to Supabase');
   };
 
   return (
