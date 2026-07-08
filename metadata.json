@@ -1,0 +1,8 @@
+{
+  "name": "RIDM Student Financial System",
+  "description": "A professional School Accounts \u0026 Fee Management application for schools to manage student fees, payments, installments, and accounting reports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

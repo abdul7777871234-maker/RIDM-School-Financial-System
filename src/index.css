@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-brand-purple: #9333ea;
+  --color-brand-pink: #db2777;
+  --color-brand-red: #dc2626;
+}
+
+@layer base {
+  body {
+    @apply font-sans text-gray-900 bg-gray-50;
+  }
+}
+
+@layer components {
+  .gradient-bg {
+    @apply bg-linear-to-br from-brand-purple via-brand-pink to-brand-red;
+  }
+}
