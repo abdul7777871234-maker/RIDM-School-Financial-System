@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { UserProfile } from '@/types';
+import { UserProfile, UserRole } from '@/types';
 
 interface AuthContextType {
   user: User | null;
@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchProfile(session.user);
       } else {
         setLoading(false);
       }
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchProfile(session.user);
       } else {
         setProfile(null);
         setLoading(false);
@@ -51,16 +51,106 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (uid: string) => {
+  const getRoleForEmail = (email?: string): UserRole => {
+    if (!email) return 'viewer';
+    const e = email.toLowerCase();
+    if (
+      e === 'admin@ridm.system' || 
+      e === 'ridmsfs@ridm.system' || 
+      e === 'ridmacademy@gmail.com' || 
+      e === 'abdul7777871234@gmail.com'
+    ) {
+      return 'super_admin';
+    }
+    return 'viewer';
+  };
+
+  const getDisplayNameForEmail = (email?: string): string => {
+    if (!email) return 'User';
+    const e = email.toLowerCase();
+    if (e === 'ridmsfs@ridm.system') return 'RIDM SFS Admin';
+    if (e === 'admin@ridm.system') return 'Admin';
+    return email.split('@')[0];
+  };
+
+  const fetchProfile = async (user: User) => {
+    setLoading(true);
+    const fallbackProfile: UserProfile = {
+      uid: user.id,
+      email: user.email || '',
+      displayName: getDisplayNameForEmail(user.email),
+      role: getRoleForEmail(user.email),
+      status: 'active',
+      isVerified: true,
+      createdAt: Date.now(),
+    };
+
     try {
-      const { data, error } = await supabase.from('users').select('*').eq('id', uid).single();
+      const { data, error } = await supabase.from('users').select('*').eq('id', user.id).single();
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Supabase error fetching profile:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+
+        if (error.code === 'PGRST116') {
+          console.warn('User profile not found in users table, creating a default profile for session.');
+          
+          const profileRole = getRoleForEmail(user.email);
+          const profileDisplayName = getDisplayNameForEmail(user.email);
+
+          const { data: newData, error: insertError } = await supabase.from('users').insert({
+              id: user.id,
+              email: user.email,
+              display_name: profileDisplayName,
+              role: profileRole,
+              status: 'active',
+              is_verified: true,
+              created_at: Date.now(),
+          }).select().single();
+          
+          if (insertError) {
+              console.error('Supabase error creating default profile:', {
+                message: insertError.message,
+                code: insertError.code,
+                details: insertError.details,
+                hint: insertError.hint
+              });
+              console.warn('Falling back to local in-memory profile due to insert failure.');
+              setProfile(fallbackProfile);
+          } else {
+              setProfile({
+                uid: newData.id,
+                email: newData.email,
+                displayName: newData.display_name,
+                role: newData.role as UserRole,
+                status: newData.status,
+                isVerified: newData.is_verified,
+                createdAt: newData.created_at,
+                photoURL: newData.photo_url,
+              });
+          }
+        } else {
+          console.warn('Falling back to local in-memory profile due to query error.');
+          setProfile(fallbackProfile);
+        }
       } else {
-        setProfile(data as UserProfile);
+        setProfile({
+          uid: data.id,
+          email: data.email,
+          displayName: data.display_name,
+          role: data.role as UserRole,
+          status: data.status,
+          isVerified: data.is_verified,
+          createdAt: data.created_at,
+          photoURL: data.photo_url,
+        });
       }
     } catch (err) {
-      console.error('Error in fetchProfile:', err);
+      console.error('Uncaught error in fetchProfile catch block:', err);
+      setProfile(fallbackProfile);
     } finally {
       setLoading(false);
     }
