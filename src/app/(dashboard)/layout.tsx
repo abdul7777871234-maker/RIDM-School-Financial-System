@@ -18,7 +18,9 @@ import {
   Search,
   Calculator,
   RotateCcw,
-  ExternalLink
+  ExternalLink,
+  Menu,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getSettings } from '@/lib/localDb';
@@ -34,6 +36,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   });
 
   const [currentDateTime, setCurrentDateTime] = React.useState<string>('');
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     const updateDateTime = () => {
@@ -161,8 +164,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      {/* Mobile Sidebar Backdrop */}
+      {isSidebarOpen && (
+        <div 
+          id="sidebar-backdrop"
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 bg-black/30 backdrop-blur-xs z-45 lg:hidden"
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="group w-20 hover:w-72 bg-white border-r border-gray-100 flex flex-col fixed inset-y-0 shadow-sm z-50 transition-all duration-300 overflow-hidden">
+      <aside 
+        id="dashboard-sidebar"
+        className={cn(
+          "bg-white border-r border-gray-100 flex flex-col fixed inset-y-0 shadow-lg lg:shadow-sm z-50 transition-all duration-300 overflow-hidden",
+          isSidebarOpen 
+            ? "translate-x-0 w-72 lg:w-72" 
+            : "-translate-x-full lg:translate-x-0 lg:w-20 lg:hover:w-72 group"
+        )}
+      >
         <div className="p-5 group-hover:p-8 transition-all duration-300">
           <div className="flex items-center gap-3 w-56">
             {schoolSettings.schoolLogo ? (
@@ -179,7 +199,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <School size={20} />
               </div>
             )}
-            <div className="min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className={cn(
+              "min-w-0 transition-opacity duration-300",
+              isSidebarOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            )}>
               <h1 className="font-black text-sm tracking-tight text-gray-900 leading-tight truncate">{schoolSettings.schoolName}</h1>
               <p className="text-[9px] font-black text-purple-600 uppercase tracking-widest leading-none mt-0.5">Financial System</p>
             </div>
@@ -193,8 +216,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={item.name}
                 href={item.href}
+                onClick={() => setIsSidebarOpen(false)}
                 className={cn(
-                  "flex items-center justify-between px-3 group-hover:px-4 py-3.5 rounded-2xl transition-all",
+                  "flex items-center justify-between py-3.5 rounded-2xl transition-all",
+                  isSidebarOpen ? "px-4" : "px-3 group-hover:px-4",
                   isActive 
                     ? "bg-purple-600 text-white shadow-xl shadow-purple-100 scale-[1.02]" 
                     : "text-gray-500 hover:bg-gray-50 hover:text-purple-600"
@@ -204,11 +229,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <div className="flex-shrink-0 flex items-center justify-center w-6">
                     <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
                   </div>
-                  <span className={cn("text-sm font-bold tracking-tight whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300", isActive ? "text-white" : "text-gray-600")}>
+                  <span className={cn(
+                    "text-sm font-bold tracking-tight whitespace-nowrap transition-opacity duration-300",
+                    isActive ? "text-white" : "text-gray-600",
+                    isSidebarOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                  )}>
                     {item.name}
                   </span>
                 </div>
-                {isActive && <ChevronRight size={14} className="text-white/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shrink-0" />}
+                {isActive && (
+                  <ChevronRight 
+                    size={14} 
+                    className={cn(
+                      "text-white/50 transition-opacity duration-300 shrink-0", 
+                      isSidebarOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    )} 
+                  />
+                )}
               </Link>
             );
           })}
@@ -221,19 +258,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               href={adminPortalUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full flex items-center justify-between px-3 group-hover:px-4 py-3.5 mb-4 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-lg shadow-slate-100"
+              className={cn(
+                "w-full flex items-center justify-between py-3.5 mb-4 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-lg shadow-slate-100",
+                isSidebarOpen ? "px-4" : "px-3 group-hover:px-4"
+              )}
             >
               <div className="flex items-center gap-4 w-52">
                 <div className="flex-shrink-0 flex items-center justify-center w-6">
                   <ExternalLink size={20} className="text-blue-400" />
                 </div>
-                <span className="text-sm font-bold tracking-tight whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">Admin Portal</span>
+                <span className={cn(
+                  "text-sm font-bold tracking-tight whitespace-nowrap transition-opacity duration-300",
+                  isSidebarOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                )}>
+                  Admin Portal
+                </span>
               </div>
-              <ChevronRight size={14} className="text-white/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shrink-0" />
+              <ChevronRight 
+                size={14} 
+                className={cn(
+                  "text-white/30 transition-opacity duration-300 shrink-0", 
+                  isSidebarOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                )} 
+              />
             </a>
           )}
 
-          <div className="bg-gray-50 rounded-2xl p-2 group-hover:p-4 flex items-center gap-3 mb-4 transition-all duration-300 overflow-hidden w-[48px] group-hover:w-auto mx-auto group-hover:mx-0 relative">
+          <div className={cn(
+            "bg-gray-50 rounded-2xl flex items-center gap-3 mb-4 transition-all duration-300 overflow-hidden relative",
+            isSidebarOpen ? "p-4 w-auto" : "p-2 group-hover:p-4 w-[48px] group-hover:w-auto mx-auto group-hover:mx-0"
+          )}>
             <input 
               type="file"
               id="sidebar-avatar-upload"
@@ -266,7 +320,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 "bg-emerald-500"
               )} title="Database Connected" />
             </label>
-            <div className="flex-1 min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className={cn(
+              "flex-1 min-w-0 transition-opacity duration-300",
+              isSidebarOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            )}>
               <p className="text-sm font-bold text-gray-900 truncate">{profile.displayName || profile.email}</p>
               <p className="text-[10px] text-purple-500 font-bold uppercase tracking-widest truncate">{profile.role}</p>
             </div>
@@ -278,18 +335,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex-shrink-0 flex items-center justify-center w-6">
               <LogOut size={18} />
             </div>
-            <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">Sign Out</span>
+            <span className={cn(
+              "whitespace-nowrap transition-opacity duration-300",
+              isSidebarOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            )}>
+              Sign Out
+            </span>
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-20 transition-all duration-300">
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-between px-10 sticky top-0 z-40">
-          <div className="flex items-center gap-2 text-sm text-gray-400 font-medium">
-             <span className="capitalize">{pathname.split('/')[1] || 'Dashboard'}</span>
-             <ChevronRight size={14} />
-             <span className="text-gray-900 font-bold">{pathname === '/' ? 'Overview' : 'View All'}</span>
+      <main className={cn(
+        "flex-1 transition-all duration-300",
+        isSidebarOpen ? "ml-0 lg:ml-72" : "ml-0 lg:ml-20"
+      )}>
+        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-40">
+          <div className="flex items-center gap-4 text-sm text-gray-400 font-medium">
+             {/* Sidebar Hamburger / Close Toggle Button */}
+             <button
+               id="sidebar-toggle-btn"
+               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+               className="p-2 -ml-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all flex items-center justify-center cursor-pointer"
+               aria-label="Toggle Sidebar"
+             >
+               {isSidebarOpen ? <X size={22} /> : <Menu size={22} />}
+             </button>
+             <span className="capitalize hidden sm:inline">{pathname.split('/')[1] || 'Dashboard'}</span>
+             <ChevronRight size={14} className="hidden sm:inline" />
+             <span className="text-gray-900 font-bold hidden sm:inline">{pathname === '/' ? 'Overview' : 'View All'}</span>
+             <span className="text-gray-900 font-bold sm:hidden capitalize">{pathname.split('/')[1] || 'Overview'}</span>
           </div>
           <div className="flex items-center gap-6">
             <div className="text-right">
@@ -300,7 +375,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
         </header>
-        <div className="p-10 max-w-7xl mx-auto">
+        <div className="p-4 sm:p-10 max-w-7xl mx-auto">
           {children}
         </div>
       </main>
