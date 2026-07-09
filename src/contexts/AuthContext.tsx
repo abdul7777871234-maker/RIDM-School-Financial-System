@@ -88,15 +88,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await supabase.from('users').select('*').eq('id', user.id).single();
       if (error) {
-        console.error('Supabase error fetching profile:', {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint
-        });
+        if (error.code !== 'PGRST116') {
+          console.warn('Supabase profile query returned non-critical status:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          });
+        }
 
         if (error.code === 'PGRST116') {
-          console.warn('User profile not found in users table, creating a default profile for session.');
+          console.log('User profile not found in users table, creating a default profile for session.');
           
           const profileRole = getRoleForEmail(user.email);
           const profileDisplayName = getDisplayNameForEmail(user.email);
@@ -112,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }).select().single();
           
           if (insertError) {
-              console.error('Supabase error creating default profile:', {
+              console.warn('Supabase profile creation returned non-critical status:', {
                 message: insertError.message,
                 code: insertError.code,
                 details: insertError.details,
