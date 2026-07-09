@@ -180,8 +180,8 @@ export default function RefundsPage() {
         </button>
       </div>
 
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-8 border-b border-gray-50 flex items-center justify-between flex-wrap gap-4">
+      <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-4 sm:p-8 border-b border-gray-50 flex items-center justify-between flex-wrap gap-4">
           <div className="relative max-w-md flex-1 min-w-[260px]">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input 

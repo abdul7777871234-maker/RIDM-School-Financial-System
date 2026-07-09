@@ -122,7 +122,7 @@ export default function StudentProfile() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Profile Card */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 text-center overflow-hidden relative">
+          <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-sm border border-gray-100 p-4 sm:p-8 text-center overflow-hidden relative">
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 to-blue-500" />
             <div className="w-24 h-24 rounded-3xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto mb-6 text-3xl font-black shadow-inner shadow-purple-100">
               {student.name.charAt(0)}
@@ -195,7 +195,7 @@ export default function StudentProfile() {
             </div>
           </div>
 
-          <div className="bg-purple-600 rounded-[2rem] p-8 text-white space-y-6 shadow-xl shadow-purple-100">
+          <div className="bg-purple-600 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-8 text-white space-y-6 shadow-xl shadow-purple-100">
             <div className="space-y-1">
                 <p className="text-[10px] font-black text-purple-200 uppercase tracking-widest">Remaining Balance</p>
                 <h3 className="text-4xl font-black">{calculateOutstanding(student).toLocaleString()} <span className="text-lg font-medium opacity-60">{settings?.currency || 'SAR'}</span></h3>
@@ -225,15 +225,15 @@ export default function StudentProfile() {
 
         {/* Payment History */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full">
-            <div className="p-8 border-b border-gray-50 flex items-center justify-between">
+          <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full">
+            <div className="p-4 sm:p-8 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center shrink-0">
                   <Receipt size={24} />
                 </div>
                 <h3 className="text-xl font-black text-gray-900 tracking-tight">Financial Transaction Log</h3>
               </div>
-              <span className="px-4 py-1.5 rounded-full bg-gray-50 text-gray-500 font-bold text-[10px] uppercase tracking-widest">
+              <span className="px-4 py-1.5 rounded-full bg-gray-50 text-gray-500 font-bold text-[10px] uppercase tracking-widest shrink-0 self-start sm:self-auto">
                 {payments.length} Records Found
               </span>
             </div>
@@ -249,8 +249,8 @@ export default function StudentProfile() {
               ) : (
                 <div className="divide-y divide-gray-50">
                   {payments.map((payment) => (
-                    <div key={payment.id} className="p-8 flex items-center justify-between hover:bg-gray-50/50 transition-colors group">
-                      <div className="flex items-center gap-6">
+                    <div key={payment.id} className="p-4 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50/50 transition-colors group gap-4">
+                      <div className="flex items-center gap-4 sm:gap-6">
                         <div className="text-center p-3 rounded-2xl bg-gray-50 border border-gray-100 group-hover:bg-white transition-all">
                           <p className="text-[10px] font-black text-gray-400 uppercase">{format(payment.date, 'MMM')}</p>
                           <p className="text-xl font-black text-gray-900">{format(payment.date, 'dd')}</p>

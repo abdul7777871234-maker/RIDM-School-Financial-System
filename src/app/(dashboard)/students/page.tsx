@@ -266,9 +266,9 @@ export default function Students() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
-            <div className="p-8 border-b border-gray-50 flex items-center justify-between shrink-0">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-2 sm:p-6 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[95vh]">
+            <div className="p-4 sm:p-8 border-b border-gray-50 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
                   <GraduationCap size={24} />
@@ -287,7 +287,7 @@ export default function Students() {
                 <X size={20} />
               </button>
             </div >
-            <form id="student-registration-form" onSubmit={handleSubmitStudent} className="p-8 space-y-6 overflow-y-auto flex-1">
+            <form id="student-registration-form" onSubmit={handleSubmitStudent} className="p-4 sm:p-8 space-y-6 overflow-y-auto flex-1">
               {error && (
                 <div className="p-4 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 text-sm font-bold flex items-center gap-3 animate-in shake-in">
                   <AlertTriangle size={18} />

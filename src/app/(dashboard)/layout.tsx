@@ -171,7 +171,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const adminPortalUrl = process.env.NEXT_PUBLIC_ADMIN_PORTAL_URL;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex overflow-x-hidden">
       {/* Mobile Sidebar Backdrop */}
       {isSidebarOpen && (
         <div 
@@ -355,7 +355,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main Content */}
       <main className={cn(
-        "flex-1 transition-all duration-300",
+        "flex-1 transition-all duration-300 min-w-0 overflow-x-hidden max-w-full",
         isSidebarOpen ? "ml-0 lg:ml-72" : "ml-0 lg:ml-20"
       )}>
         <header className="h-20 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-40">
@@ -383,7 +383,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
         </header>
-        <div className="p-4 sm:p-10 max-w-7xl mx-auto">
+        <div className="p-3 sm:p-6 md:p-10 max-w-7xl mx-auto w-full min-w-0">
           {children}
         </div>
       </main>

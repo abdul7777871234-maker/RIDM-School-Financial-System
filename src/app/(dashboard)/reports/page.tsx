@@ -265,16 +265,16 @@ CREATE TABLE IF NOT EXISTS payments (
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Financial Intelligence Center</h1>
-          <p className="text-gray-500 font-medium">Holistic view of collections, growth, and arrears</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Financial Intelligence Center</h1>
+          <p className="text-xs sm:text-sm text-gray-500 font-medium">Holistic view of collections, growth, and arrears</p>
         </div>
-        <div className="flex gap-3">
-          <div className="flex items-center gap-2 bg-white px-4 py-2 border border-gray-100 rounded-xl">
-            <Filter size={14} className="text-gray-400" />
+        <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3 w-full md:w-auto">
+          <div className="flex-1 md:flex-initial flex items-center gap-2 bg-white px-3 py-2 sm:px-4 border border-gray-100 rounded-xl min-w-[140px]">
+            <Filter size={14} className="text-gray-400 shrink-0" />
             <select
-              className="text-xs font-black uppercase tracking-wider text-gray-700 outline-none cursor-pointer bg-transparent"
+              className="text-xs font-black uppercase tracking-wider text-gray-700 outline-none cursor-pointer bg-transparent w-full min-w-0"
               value={selectedPlanFilter}
               onChange={(e) => setSelectedPlanFilter(e.target.value)}
             >
@@ -286,11 +286,11 @@ CREATE TABLE IF NOT EXISTS payments (
             </select>
           </div>
           
-          <div className="relative">
+          <div className="relative flex-1 md:flex-initial">
             <button 
               id="export-report-dropdown-btn"
               onClick={() => setShowExportOptions(!showExportOptions)}
-              className="px-5 py-2.5 gradient-bg text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-purple-100 flex items-center gap-2"
+              className="w-full md:w-auto px-4 sm:px-5 py-2 sm:py-2.5 gradient-bg text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-purple-100 flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <Download size={14} /> 
               Export Report
@@ -390,8 +390,8 @@ CREATE TABLE IF NOT EXISTS payments (
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main collection chart */}
-        <div className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm space-y-8">
-           <div className="flex items-center justify-between">
+        <div className="lg:col-span-2 bg-white rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-8 border border-gray-100 shadow-sm space-y-8">
+           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                  <h3 className="text-lg font-bold text-gray-900 tracking-tight">Collection Activity (This Month)</h3>
                  <p className="text-xs text-gray-400 font-medium font-sans">Visualizing daily cash flow and bank transfers</p>
@@ -435,7 +435,7 @@ CREATE TABLE IF NOT EXISTS payments (
         </div>
 
         {/* Method breakdown */}
-        <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm space-y-8">
+        <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-8 border border-gray-100 shadow-sm space-y-8">
            <div>
               <h3 className="text-lg font-bold text-gray-900 tracking-tight">Method Partitioning</h3>
               <p className="text-xs text-gray-400 font-medium font-sans italic">Volume distribution by payment gateway</p>
@@ -479,22 +479,22 @@ CREATE TABLE IF NOT EXISTS payments (
       </div>
 
       {/* Student Financial Ledger */}
-      <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-8 border border-gray-100 shadow-sm space-y-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <h3 className="text-lg font-bold text-gray-900 tracking-tight">Student Financial Ledger</h3>
             <p className="text-xs text-gray-400 font-medium">Complete record of student fee statuses and collection synchronization</p>
           </div>
           {error && (
-            <div className="px-4 py-2 bg-amber-50 text-amber-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-amber-100 flex items-center gap-2">
-              <AlertTriangle size={12} /> Sync Warning: {error}
+            <div className="px-3 py-1.5 bg-amber-50 text-amber-600 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest border border-amber-100 flex items-center gap-2 max-w-full">
+              <AlertTriangle size={12} className="shrink-0" /> <span className="truncate">Sync Warning: {error}</span>
             </div>
           )}
-          <div className="flex items-center gap-3">
-            <div className="px-4 py-2 bg-green-50 text-green-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-green-100">
+          <div className="flex items-center gap-2 sm:gap-3 w-full lg:w-auto">
+            <div className="flex-1 lg:flex-initial text-center px-2.5 py-1.5 sm:px-4 sm:py-2 bg-green-50 text-green-600 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest border border-green-100">
               {filteredStudentsForReport.filter(s => calculateOutstanding(s) === 0).length} Settled
             </div>
-            <div className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-red-100">
+            <div className="flex-1 lg:flex-initial text-center px-2.5 py-1.5 sm:px-4 sm:py-2 bg-red-50 text-red-600 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest border border-red-100">
               {filteredStudentsForReport.filter(s => calculateOutstanding(s) > 0).length} Outstanding
             </div>
           </div>

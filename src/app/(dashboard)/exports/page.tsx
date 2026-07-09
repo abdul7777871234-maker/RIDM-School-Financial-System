@@ -66,7 +66,7 @@ export default function Exports() {
           <Link 
             key={index}
             href={card.path}
-            className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 hover:shadow-md hover:border-purple-100 transition-all group flex flex-col justify-between"
+            className="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 sm:p-8 hover:shadow-md hover:border-purple-100 transition-all group flex flex-col justify-between"
           >
             <div className="space-y-6">
               <div className="flex items-center justify-between">

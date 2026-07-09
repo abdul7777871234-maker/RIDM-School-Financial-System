@@ -55,7 +55,7 @@ export default function Installments() {
              </div>
           </div>
         ) : plans.map(plan => (
-          <div key={plan.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 space-y-6 hover:shadow-md transition-all group">
+          <div key={plan.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm p-4 sm:p-8 space-y-6 hover:shadow-md transition-all group">
              <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                    <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold">

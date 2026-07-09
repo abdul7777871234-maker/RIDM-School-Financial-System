@@ -73,7 +73,7 @@ export default function Dashboard() {
   }, []);
 
   const Card = ({ title, value, icon: Icon, color, subtext }: any) => (
-    <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm relative overflow-hidden group">
+    <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-sm relative overflow-hidden group">
       <div className={cn("absolute top-0 right-0 w-32 h-32 opacity-1 rounded-full -mr-16 -mt-16 blur-3xl", color)} />
       <div className="relative">
         <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mb-6 shadow-inner", color.replace('bg-', 'text-').replace('/10', ' bg-opacity-10'))}>
@@ -102,7 +102,7 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
         <Card 
           title="Total Students" 
           value={stats.totalStudents} 
@@ -133,10 +133,10 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {/* Recent Transactions */}
         <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between">
+          <div className="px-4 sm:px-8 py-5 sm:py-6 border-b border-gray-50 flex items-center justify-between">
             <h3 className="font-bold text-gray-900">Recent Transactions</h3>
             <Link href="/reports" className="text-xs font-bold text-purple-600 hover:underline flex items-center gap-1">
               View All <ArrowUpRight size={14} />
@@ -146,19 +146,19 @@ export default function Dashboard() {
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-gray-50/50">
-                  <th className="px-8 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Student</th>
-                  <th className="px-8 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Date</th>
-                  <th className="px-8 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Amount</th>
+                  <th className="px-4 sm:px-8 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Student</th>
+                  <th className="px-4 sm:px-8 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Date</th>
+                  <th className="px-4 sm:px-8 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Amount</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 font-medium">
                 {stats.recentPayments.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="px-8 py-10 text-center text-gray-400 italic">No recent payments found</td>
+                    <td colSpan={3} className="px-4 sm:px-8 py-10 text-center text-gray-400 italic">No recent payments found</td>
                   </tr>
                 ) : stats.recentPayments.map((p) => (
                   <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-8 py-5">
+                    <td className="px-4 sm:px-8 py-4 sm:py-5">
                       <div className="flex items-center gap-3">
                         <div>
                           <p className="text-sm font-bold text-gray-900">{p.studentName}</p>
@@ -169,16 +169,16 @@ export default function Dashboard() {
                              )}>
                                {p.status || 'success'}
                              </span>
-                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest uppercase">{p.method}</p>
+                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{p.method}</p>
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-sm text-gray-500 font-bold">
+                    <td className="px-4 sm:px-8 py-4 sm:py-5 text-sm text-gray-500 font-bold">
                       {format(p.date, 'MMM dd, yyyy')}
                     </td>
                     <td className={cn(
-                      "px-8 py-5 text-right font-black",
+                      "px-4 sm:px-8 py-4 sm:py-5 text-right font-black",
                       p.status === 'refunded' ? "text-red-400 line-through" : "text-gray-900"
                     )}>
                       {p.amount.toLocaleString()} <small className="font-normal text-gray-400">{settings?.currency || 'SAR'}</small>
@@ -192,7 +192,7 @@ export default function Dashboard() {
 
         {/* Quick Links / Actions */}
         <div className="space-y-6">
-          <div className="bg-linear-to-br from-indigo-900 via-purple-900 to-purple-800 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
+          <div className="bg-linear-to-br from-indigo-900 via-purple-900 to-purple-800 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-2xl">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
             <div className="relative">
               <h4 className="text-xl font-black mb-1">Financial Report</h4>
@@ -203,7 +203,7 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-sm space-y-6">
             <h4 className="font-bold text-gray-900">Quick Actions</h4>
             <div className="space-y-3">
               {[

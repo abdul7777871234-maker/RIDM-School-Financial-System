@@ -104,7 +104,7 @@ export default function AddStudent() {
         Back to List
       </button>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 sm:p-8">
         <div className="flex items-center gap-4 mb-8">
           <div className="w-14 h-14 rounded-2xl gradient-bg flex items-center justify-center text-white shadow-lg">
             <User size={28} />

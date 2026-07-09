@@ -18,6 +18,25 @@ import { cn } from '@/lib/utils';
 import { SchoolSettings } from '@/types';
 import Link from 'next/link';
 import { Database } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+
+const Section = ({ title, description, icon: Icon, children }: any) => (
+  <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 sm:p-8 space-y-6">
+    <div className="flex items-start justify-between border-b border-gray-50 pb-4 sm:pb-6">
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-inner">
+          <Icon size={24} />
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-gray-900 tracking-tight">{title}</h3>
+          <p className="text-xs text-gray-400 font-medium font-sans">{description}</p>
+        </div>
+      </div>
+    </div>
+    <div>{children}</div>
+  </div>
+);
+
 export default function Settings() {
   const [settings, setSettings] = useState<SchoolSettings>({
     schoolName: '',
@@ -46,8 +65,15 @@ export default function Settings() {
     fetchSettings();
   }, []);
 
-  const handleUpdatePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpdatePassword = async (e?: React.FormEvent | React.KeyboardEvent | React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!passwords.new) {
+      alert('Please enter a new password/access key.');
+      return;
+    }
     if (passwords.new !== passwords.confirm) {
       alert('Passwords do not match!');
       return;
@@ -59,10 +85,17 @@ export default function Settings() {
 
     setPasswordLoading(true);
     try {
+      const { error } = await supabase.auth.updateUser({
+        password: passwords.new
+      });
+      if (error) {
+        throw error;
+      }
       alert('Password updated successfully!');
       setPasswords({ new: '', confirm: '' });
     } catch (error: any) {
-      alert(`Error updating password: ${error.message}`);
+      console.error('Error updating password:', error);
+      alert(`Error updating password: ${error.message || error}`);
     } finally {
       setPasswordLoading(false);
     }
@@ -82,23 +115,6 @@ export default function Settings() {
       setSaving(false);
     }
   };
-
-  const Section = ({ title, description, icon: Icon, children }: any) => (
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-6">
-      <div className="flex items-start justify-between border-b border-gray-50 pb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-inner">
-            <Icon size={24} />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-900 tracking-tight">{title}</h3>
-            <p className="text-xs text-gray-400 font-medium font-sans">{description}</p>
-          </div>
-        </div>
-      </div>
-      <div>{children}</div>
-    </div>
-  );
 
   const resizeAndCompressImage = (file: File, callback: (base64: string) => void) => {
     const reader = new FileReader();
@@ -363,10 +379,18 @@ export default function Settings() {
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                     <input 
+                      id="new-access-key"
                       type="password"
-                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 font-bold tracking-tight"
+                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 font-bold tracking-tight text-base"
                       value={passwords.new}
                       onChange={(e) => setPasswords({...passwords, new: e.target.value})}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleUpdatePassword(e);
+                        }
+                      }}
                       placeholder="••••••••••••"
                     />
                   </div>
@@ -376,10 +400,18 @@ export default function Settings() {
                   <div className="relative">
                     <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                     <input 
+                      id="confirm-access-key"
                       type="password"
-                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 font-bold tracking-tight"
+                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 font-bold tracking-tight text-base"
                       value={passwords.confirm}
                       onChange={(e) => setPasswords({...passwords, confirm: e.target.value})}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleUpdatePassword(e);
+                        }
+                      }}
                       placeholder="••••••••••••"
                     />
                   </div>
@@ -387,6 +419,7 @@ export default function Settings() {
               </div>
               <div className="pb-1">
                 <button
+                  id="update-access-key-btn"
                   type="button"
                   onClick={handleUpdatePassword}
                   disabled={passwordLoading}

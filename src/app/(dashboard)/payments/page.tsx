@@ -246,8 +246,8 @@ export default function NewPayment() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         {/* Step 1: Select Student */}
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-6">
-            <div className="flex items-center gap-4 border-b border-gray-50 pb-6">
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 sm:p-8 space-y-6">
+            <div className="flex items-center gap-4 border-b border-gray-50 pb-4 sm:pb-6">
               <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
                 <Search size={24} />
               </div>
@@ -315,11 +315,11 @@ export default function NewPayment() {
           <form 
             onSubmit={handleSubmit}
             className={cn(
-              "bg-white rounded-3xl shadow-sm border transition-all p-8 space-y-6 relative overflow-hidden",
+              "bg-white rounded-3xl shadow-sm border transition-all p-4 sm:p-8 space-y-6 relative overflow-hidden",
               selectedStudent ? "border-purple-100 opacity-100 scale-100" : "border-gray-50 opacity-50 scale-[0.98] pointer-events-none"
             )}
           >
-                <div className="flex items-center gap-4 border-b border-gray-50 pb-6">
+                <div className="flex items-center gap-4 border-b border-gray-50 pb-4 sm:pb-6">
                   <div className="w-12 h-12 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center">
                     <Banknote size={24} />
                   </div>

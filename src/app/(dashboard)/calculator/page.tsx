@@ -262,7 +262,7 @@ export default function CalculatorPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Interactive Calculator Area */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm space-y-6">
+          <div className="bg-white rounded-3xl border border-gray-100 p-4 sm:p-8 shadow-sm space-y-6">
             
             {/* Header section based on tab */}
             <div className="flex items-center justify-between border-b border-gray-50 pb-5">
@@ -459,7 +459,7 @@ export default function CalculatorPage() {
 
         {/* Right Sidebar - Dynamically Updated Summary Sheet */}
         <div id="calculator-sidebar-results" className="space-y-6">
-          <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm space-y-6 flex flex-col justify-between">
+          <div className="bg-white rounded-3xl border border-gray-100 p-4 sm:p-8 shadow-sm space-y-6 flex flex-col justify-between">
             <div className="space-y-6">
               <h3 className="font-bold text-gray-900 border-b border-gray-50 pb-4 flex items-center gap-2">
                 <CheckCircle2 className="text-purple-600" size={18} />
