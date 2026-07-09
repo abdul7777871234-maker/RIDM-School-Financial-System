@@ -356,13 +356,40 @@ export default function Students() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Class / Grade</label>
-                  <input 
+                  <select 
                     required
-                    type="text"
-                    className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 font-medium"
-                    value={newStudent.class}
+                    className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 font-bold text-gray-800 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%239ca3af%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.7em_auto] bg-[right_1.25rem_center] bg-no-repeat"
+                    value={newStudent.class || ''}
                     onChange={(e) => setNewStudent({...newStudent, class: e.target.value})}
-                  />
+                  >
+                    <option value="" disabled>Select Class / Grade</option>
+                    <optgroup label="Early Years & Preschool">
+                      <option value="Playgroup / Foundation Year">Playgroup / Foundation Year</option>
+                      <option value="KG-I">KG-I</option>
+                      <option value="KG-II">KG-II</option>
+                    </optgroup>
+                    <optgroup label="School Grades">
+                      <option value="Grade 1">Grade 1</option>
+                      <option value="Grade 2">Grade 2</option>
+                      <option value="Grade 3">Grade 3</option>
+                      <option value="Grade 4">Grade 4</option>
+                      <option value="Grade 5">Grade 5</option>
+                      <option value="Grade 6">Grade 6</option>
+                      <option value="Grade 7">Grade 7</option>
+                      <option value="Grade 8">Grade 8</option>
+                      <option value="Grade 9">Grade 9</option>
+                      <option value="Grade 10">Grade 10</option>
+                      <option value="Grade 11">Grade 11</option>
+                      <option value="Grade 12">Grade 12</option>
+                    </optgroup>
+                    <optgroup label="Quran Classes">
+                      <option value="Quran: Hifz">Hifz</option>
+                      <option value="Quran: Nazra">Nazra</option>
+                      <option value="Quran: Lesson Preparation">Lesson Preparation</option>
+                      <option value="Quran: Tilawat (Recitation Correction)">Tilawat (Recitation Correction)</option>
+                      <option value="Quran: Quran Foundation">Quran Foundation</option>
+                    </optgroup>
+                  </select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Parent Contact</label>
