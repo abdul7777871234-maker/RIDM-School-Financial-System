@@ -237,13 +237,13 @@ export default function NewPayment() {
         </div>
       )}
 
-      <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 print:hidden">
+      <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-300 print:hidden">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Record New Payment</h1>
           <p className="text-gray-500 font-medium">Issue digital receipts and update student financial standing</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
         {/* Step 1: Select Student */}
         <div className="space-y-6">
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 sm:p-8 space-y-6">

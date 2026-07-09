@@ -35,7 +35,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     schoolLogo: '/logo.png',
   });
 
-  const [currentDateTime, setCurrentDateTime] = React.useState<string>('');
+  const [currentDate, setCurrentDate] = React.useState<string>('');
+  const [currentTime, setCurrentTime] = React.useState<string>('');
   const [isSidebarOpen, setIsSidebarOpen] = React.useState<boolean>(false);
 
   React.useEffect(() => {
@@ -51,10 +52,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       const timeString = date.toLocaleTimeString('en-US', { 
         hour12: true, 
         hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit' 
+        minute: '2-digit'
       });
-      setCurrentDateTime(`${dateString} • ${timeString}`);
+      setCurrentDate(dateString);
+      setCurrentTime(timeString);
     };
 
     updateDateTime();
@@ -377,8 +378,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-6">
             <div className="text-right">
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">System Date</p>
-              <p className="text-sm font-black text-gray-900">
-                {currentDateTime || 'Loading Date...'}
+              <p className="text-sm font-black text-gray-900 flex flex-col sm:flex-row sm:items-center justify-end gap-0.5 sm:gap-1.5">
+                <span className="text-[10px] sm:text-sm text-gray-500 sm:text-gray-900 font-medium sm:font-black">
+                  {currentDate || 'Loading Date...'}
+                </span>
+                <span className="text-gray-300 hidden sm:inline">•</span>
+                <span className="text-xs sm:text-sm font-black text-gray-900 shrink-0">
+                  {currentTime || 'Loading Time...'}
+                </span>
               </p>
             </div>
           </div>

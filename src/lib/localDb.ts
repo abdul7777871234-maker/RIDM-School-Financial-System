@@ -588,16 +588,43 @@ export async function addAuditLog(userId: string, userName: string, action: stri
   return newLog;
 }
 
-// 5. USERS API (Already uses localStorage)
+function mapUserFromDb(row: any): UserProfile {
+  return {
+    uid: row.id,
+    email: row.email,
+    displayName: row.display_name,
+    role: row.role as UserRole,
+    status: row.status as 'active' | 'inactive',
+    isVerified: row.is_verified || false,
+    createdAt: Number(row.created_at) || Date.now(),
+    photoURL: row.photo_url || undefined
+  };
+}
+
+// 5. USERS API (Updated to use Supabase with localStorage fallback)
 export async function getUsers(): Promise<UserProfile[]> {
+  try {
+    const { data, error } = await supabase.from('users').select('*');
+    if (error) throw error;
+    if (data) {
+      return data.map(mapUserFromDb);
+    }
+  } catch (error) {
+    console.error('Error fetching users from Supabase, falling back to localStorage:', error);
+  }
   initializeLocalDb();
   return getStoredItem<UserProfile[]>('ridm_users', DEFAULT_USERS);
 }
 
-export async function addUser(email: string, role: UserRole): Promise<UserProfile> {
-  const users = await getUsers();
+export async function addUser(email: string, role: UserRole, customUid?: string): Promise<UserProfile> {
+  const generatedUid = customUid || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+
   const newUser: UserProfile = {
-    uid: `user_${Date.now()}`,
+    uid: generatedUid,
     email,
     displayName: email.split('@')[0],
     role,
@@ -605,18 +632,62 @@ export async function addUser(email: string, role: UserRole): Promise<UserProfil
     isVerified: true,
     createdAt: Date.now()
   };
+
+  try {
+    const { error } = await supabase.from('users').insert({
+      id: newUser.uid,
+      email: newUser.email,
+      display_name: newUser.displayName,
+      role: newUser.role,
+      status: newUser.status,
+      is_verified: newUser.isVerified,
+      created_at: newUser.createdAt
+    });
+    if (error) throw error;
+    console.log('User created successfully in Supabase users table.');
+  } catch (err) {
+    console.error('Error inserting user in Supabase, saving to local state fallback:', err);
+  }
+
+  // Sync to local state fallback
+  const users = getStoredItem<UserProfile[]>('ridm_users', DEFAULT_USERS);
   users.push(newUser);
   setStoredItem('ridm_users', users);
+
   return newUser;
 }
 
 export async function updateUserStatus(uid: string, status: 'active' | 'inactive'): Promise<void> {
-  const users = await getUsers();
+  try {
+    const { error } = await supabase.from('users').update({ status }).eq('id', uid);
+    if (error) throw error;
+    console.log('Updated user status in Supabase.');
+  } catch (err) {
+    console.error('Error updating user status in Supabase, updating locally:', err);
+  }
+
+  // Update locally as well
+  const users = getStoredItem<UserProfile[]>('ridm_users', DEFAULT_USERS);
   const index = users.findIndex(u => u.uid === uid);
   if (index !== -1) {
     users[index].status = status;
     setStoredItem('ridm_users', users);
   }
+}
+
+export async function deleteUser(uid: string): Promise<void> {
+  try {
+    const { error } = await supabase.from('users').delete().eq('id', uid);
+    if (error) throw error;
+    console.log('Deleted user from Supabase.');
+  } catch (err) {
+    console.error('Error deleting user from Supabase, deleting locally:', err);
+  }
+
+  // Delete locally as well
+  const users = getStoredItem<UserProfile[]>('ridm_users', DEFAULT_USERS);
+  const updated = users.filter(u => u.uid !== uid);
+  setStoredItem('ridm_users', updated);
 }
 
 // 6. SETTINGS API

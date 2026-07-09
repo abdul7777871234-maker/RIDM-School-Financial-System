@@ -1,20 +1,26 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getUsers, addUser, updateUserStatus } from '@/lib/localDb';
+import { getUsers, addUser, updateUserStatus, deleteUser } from '@/lib/localDb';
 import { 
   UserPlus, 
   ShieldCheck, 
   Search, 
   UserX, 
   CheckCircle2, 
-  Mail
+  Mail,
+  Trash2,
+  AlertTriangle,
+  X,
+  Check
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserProfile, UserRole } from '@/types';
 import { format } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Users() {
+  const { profile: currentProfile } = useAuth();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -25,6 +31,53 @@ export default function Users() {
     password: '',
     role: 'viewer' as UserRole,
   });
+
+  // Custom visual feedback state instead of browser alerts
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ uid: string; email: string } | null>(null);
+
+  // Auto-hide toast messages
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  const handleDeleteUser = (uid: string, email: string) => {
+    if (currentProfile && currentProfile.uid === uid) {
+      setToast({ message: "You cannot delete your own user account.", type: 'error' });
+      return;
+    }
+    if (uid === 'mock-admin' || uid === 'admin-user') {
+      setToast({ message: "The default system administrator account cannot be deleted.", type: 'warning' });
+      return;
+    }
+    setConfirmDelete({ uid, email });
+  };
+
+  const executeDeleteUser = async () => {
+    if (!confirmDelete) return;
+    const { uid } = confirmDelete;
+    try {
+      // First delete from Supabase Auth
+      await fetch('/api/users/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid })
+      });
+
+      // Then delete from public database table
+      await deleteUser(uid);
+      setUsers(users.filter(u => u.uid !== uid));
+      setToast({ message: "User deleted successfully from database.", type: 'success' });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      setToast({ message: "Failed to delete user.", type: 'error' });
+    } finally {
+      setConfirmDelete(null);
+    }
+  };
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -54,7 +107,7 @@ export default function Users() {
       if (!resData.success) throw new Error(resData.error);
 
       // Persist the user in the client-side local database
-      await addUser(resData.email, newUser.role);
+      await addUser(resData.email, newUser.role, resData.uid);
 
       // Re-fetch users to get the fresh profile
       const updatedUsers = await getUsers();
@@ -62,10 +115,10 @@ export default function Users() {
       
       setShowAdd(false);
       setNewUser({ username: '', password: '', role: 'viewer' });
-      alert('User added successfully!');
+      setToast({ message: 'User added successfully!', type: 'success' });
     } catch (error: any) {
       console.error("Error adding user:", error);
-      alert(`Error: ${error.message}`);
+      setToast({ message: `Error: ${error.message}`, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -76,8 +129,10 @@ export default function Users() {
     try {
       await updateUserStatus(user.uid, newStatus);
       setUsers(users.map(u => u.uid === user.uid ? { ...u, status: newStatus } : u));
+      setToast({ message: `User status changed to ${newStatus}.`, type: 'success' });
     } catch (error) {
       console.error("Error updating status:", error);
+      setToast({ message: "Failed to update user status.", type: 'error' });
     }
   };
 
@@ -352,16 +407,27 @@ export default function Users() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-8 py-4 text-right">
-                        <button 
-                          onClick={() => toggleStatus(u)}
-                          className={cn(
-                            "p-2 rounded-lg transition-all",
-                            u.status === 'active' ? "text-gray-300 hover:text-red-500 hover:bg-red-50" : "text-gray-300 hover:text-green-500 hover:bg-green-50"
-                          )}
-                        >
-                          {u.status === 'active' ? <UserX size={18} /> : <CheckCircle2 size={18} />}
-                        </button>
+                      <td className="px-8 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button 
+                            onClick={() => toggleStatus(u)}
+                            className={cn(
+                              "p-2 rounded-lg transition-all",
+                              u.status === 'active' ? "text-gray-300 hover:text-amber-600 hover:bg-amber-50" : "text-gray-300 hover:text-green-600 hover:bg-green-50"
+                            )}
+                            title={u.status === 'active' ? "Deactivate User" : "Activate User"}
+                          >
+                            {u.status === 'active' ? <UserX size={18} /> : <CheckCircle2 size={18} />}
+                          </button>
+                          
+                          <button 
+                            onClick={() => handleDeleteUser(u.uid, u.email)}
+                            className="p-2 rounded-lg text-gray-300 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                            title="Delete User"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -378,6 +444,53 @@ export default function Users() {
           </div>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-[300] bg-white border border-gray-100 rounded-2xl shadow-2xl p-4 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className={cn(
+            "w-8 h-8 rounded-xl flex items-center justify-center shrink-0",
+            toast.type === 'success' ? "bg-green-50 text-green-600" :
+            toast.type === 'error' ? "bg-red-50 text-red-600" :
+            "bg-amber-50 text-amber-600"
+          )}>
+            {toast.type === 'success' ? <Check size={18} /> : <AlertTriangle size={18} />}
+          </div>
+          <p className="text-sm font-bold text-gray-900 pr-4">{toast.message}</p>
+          <button onClick={() => setToast(null)} className="text-gray-400 hover:text-gray-600">
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* Confirm Delete Modal */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-[250] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] p-6 sm:p-8 w-full max-w-md shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 rounded-3xl bg-rose-50 text-rose-600 flex items-center justify-center mb-6 shadow-inner shadow-rose-100">
+              <Trash2 size={28} />
+            </div>
+            <h3 className="text-xl font-black text-gray-900 tracking-tight mb-2">Delete User Account</h3>
+            <p className="text-sm text-gray-500 leading-relaxed mb-6">
+              Are you sure you want to permanently delete user <span className="font-bold text-gray-800">{confirmDelete.email}</span>? This action is irreversible and will immediately revoke all access keys.
+            </p>
+            <div className="flex items-center gap-3 justify-end">
+              <button 
+                onClick={() => setConfirmDelete(null)}
+                className="px-5 py-3 rounded-2xl bg-gray-50 text-gray-500 hover:bg-gray-100 font-bold text-xs uppercase tracking-wider transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={executeDeleteUser}
+                className="px-5 py-3 rounded-2xl bg-rose-600 text-white hover:bg-rose-700 font-bold text-xs uppercase tracking-wider shadow-lg shadow-rose-100 transition-all"
+              >
+                Delete User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
