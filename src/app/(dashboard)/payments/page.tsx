@@ -5,13 +5,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getStudents, addPayment, addAuditLog, getSettings } from '@/lib/localDb';
 import { calculateOutstanding } from '@/lib/calculations';
 import { Student, Payment, SchoolSettings } from '@/types';
-import { Receipt, Search, User, CreditCard, Banknote, Calendar, Save, CheckCircle2, ChevronRight, X, Printer, QrCode } from 'lucide-react';
+import { Receipt, Search, User, CreditCard, Banknote, Calendar, Save, CheckCircle2, ChevronRight, X, Printer, QrCode, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { QRCodeCanvas } from 'qrcode.react';
 
 export default function NewPayment() {
-  const { user } = useAuth();
+  const { user, profile: currentProfile } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -40,6 +40,21 @@ export default function NewPayment() {
     };
     fetchStudents();
   }, []);
+
+  // Access Control: Auditors cannot create payments
+  if (currentProfile && currentProfile.role === 'auditor') {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6">
+        <div className="w-20 h-20 rounded-3xl bg-amber-50 text-amber-500 flex items-center justify-center mb-6">
+          <ShieldAlert size={40} />
+        </div>
+        <h1 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Auditor Access Only</h1>
+        <p className="text-gray-500 max-w-md font-medium">
+          As an Auditor, you have read-only access to the financial system. You cannot record new payments or issue receipts.
+        </p>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

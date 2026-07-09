@@ -1,24 +1,5 @@
 -- SQL Schema for Supabase Migration
+-- This file is synchronized with the master production migration.
+-- Please run the instructions in `supabase_production_migration.sql` for the complete setup.
 
--- Tables
-CREATE TABLE students (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    name TEXT NOT NULL,
-    email TEXT,
-    phone TEXT,
-    -- Add other necessary fields
-);
-
-CREATE TABLE payments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    student_id UUID REFERENCES students(id),
-    amount DECIMAL NOT NULL,
-    status TEXT NOT NULL
-);
-
--- Add other tables similarly...
--- (I will keep it simple for now, expanding later as I refactor `localDb.ts`)
+\i supabase_production_migration.sql

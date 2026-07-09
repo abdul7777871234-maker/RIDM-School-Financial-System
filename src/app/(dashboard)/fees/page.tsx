@@ -317,19 +317,26 @@ _Thank you for your timely cooperation!_`;
                       <div className="flex items-center justify-center gap-2">
                         {outstanding > 0 ? (
                           <>
-                            <Link 
-                              href="/payments"
-                              className="inline-flex items-center gap-1 text-[10px] font-black text-purple-600 uppercase tracking-widest hover:bg-purple-100 px-3 py-1.5 rounded-full border border-purple-100 transition-all"
-                            >
-                              Collect <ChevronRight size={10} />
-                            </Link>
-                            <button
-                              type="button"
-                              onClick={() => handleOpenReminder(student)}
-                              className="inline-flex items-center gap-1.5 text-[10px] font-black text-red-600 uppercase tracking-widest bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full border border-red-100 cursor-pointer transition-all"
-                            >
-                              <Mail size={12} /> Send Reminder
-                            </button>
+                            {profile?.role !== 'auditor' && (
+                              <>
+                                <Link 
+                                  href="/payments"
+                                  className="inline-flex items-center gap-1 text-[10px] font-black text-purple-600 uppercase tracking-widest hover:bg-purple-100 px-3 py-1.5 rounded-full border border-purple-100 transition-all"
+                                >
+                                  Collect <ChevronRight size={10} />
+                                </Link>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenReminder(student)}
+                                  className="inline-flex items-center gap-1.5 text-[10px] font-black text-red-600 uppercase tracking-widest bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full border border-red-100 cursor-pointer transition-all"
+                                >
+                                  <Mail size={12} /> Send Reminder
+                                </button>
+                              </>
+                            )}
+                            {profile?.role === 'auditor' && (
+                              <span className="text-[10px] font-bold text-red-500 uppercase">Payment Pending</span>
+                            )}
                           </>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[10px] font-black text-green-600 uppercase tracking-widest">

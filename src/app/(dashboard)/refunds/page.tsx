@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function RefundsPage() {
-  const { user } = useAuth();
+  const { user, profile: currentProfile } = useAuth();
   const [refunds, setRefunds] = useState<RefundRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -171,13 +171,15 @@ export default function RefundsPage() {
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Refund Management</h1>
           <p className="text-gray-500 font-medium font-sans">Reverse recorded transactions and process institutional refunds</p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="px-6 py-3.5 bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold rounded-2xl hover:opacity-90 flex items-center gap-2 self-start md:self-auto shadow-md transition-all text-xs uppercase tracking-wider"
-        >
-          <Plus size={16} strokeWidth={2.5} />
-          Process New Refund
-        </button>
+        {currentProfile?.role !== 'auditor' && (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-6 py-3.5 bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold rounded-2xl hover:opacity-90 flex items-center gap-2 self-start md:self-auto shadow-md transition-all text-xs uppercase tracking-wider"
+          >
+            <Plus size={16} strokeWidth={2.5} />
+            Process New Refund
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
@@ -196,7 +198,7 @@ export default function RefundsPage() {
             <div className="px-5 py-2.5 bg-red-50 text-red-600 rounded-2xl text-xs font-black uppercase tracking-widest border border-red-100 shadow-sm shrink-0">
               {refunds.length} Total Reversed Records
             </div>
-            {refunds.length > 0 && (
+            {refunds.length > 0 && currentProfile?.role !== 'auditor' && (
               confirmClearAll ? (
                 <div className="flex items-center gap-2 bg-red-50 px-4 py-2 rounded-2xl border border-red-100 animate-in fade-in duration-200">
                   <span className="text-[10px] font-black text-red-700 uppercase tracking-widest">Are you sure?</span>
@@ -287,31 +289,33 @@ export default function RefundsPage() {
                         View Student <ArrowUpRight size={14} />
                       </Link>
 
-                      {confirmDeleteId === refund.id ? (
-                        <div className="flex items-center gap-2">
+                      {currentProfile?.role !== 'auditor' && (
+                        confirmDeleteId === refund.id ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleDeleteRefund(refund.id)}
+                              className="inline-flex items-center gap-1 text-[10px] font-black text-red-600 hover:text-red-800 uppercase tracking-widest transition-colors cursor-pointer"
+                            >
+                              Confirm?
+                            </button>
+                            <span className="text-gray-300">|</span>
+                            <button
+                              onClick={() => setConfirmDeleteId(null)}
+                              className="inline-flex items-center text-[10px] font-black text-gray-400 hover:text-gray-600 uppercase tracking-widest transition-colors cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
                           <button
-                            onClick={() => handleDeleteRefund(refund.id)}
-                            className="inline-flex items-center gap-1 text-[10px] font-black text-red-600 hover:text-red-800 uppercase tracking-widest transition-colors cursor-pointer"
+                            onClick={() => setConfirmDeleteId(refund.id)}
+                            className="inline-flex items-center gap-1 text-[10px] font-black text-red-500 hover:text-red-700 uppercase tracking-widest transition-colors cursor-pointer"
+                            title="Delete refund record"
                           >
-                            Confirm?
+                            <Trash2 size={13} />
+                            Delete
                           </button>
-                          <span className="text-gray-300">|</span>
-                          <button
-                            onClick={() => setConfirmDeleteId(null)}
-                            className="inline-flex items-center text-[10px] font-black text-gray-400 hover:text-gray-600 uppercase tracking-widest transition-colors cursor-pointer"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setConfirmDeleteId(refund.id)}
-                          className="inline-flex items-center gap-1 text-[10px] font-black text-red-500 hover:text-red-700 uppercase tracking-widest transition-colors cursor-pointer"
-                          title="Delete refund record"
-                        >
-                          <Trash2 size={13} />
-                          Delete
-                        </button>
+                        )
                       )}
                     </div>
                   </td>

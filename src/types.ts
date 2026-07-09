@@ -1,4 +1,4 @@
-export type UserRole = 'super_admin' | 'manager' | 'accountant' | 'viewer';
+export type UserRole = 'super_admin' | 'admin' | 'accountant' | 'auditor';
 
 export interface UserProfile {
   uid: string;
@@ -8,6 +8,7 @@ export interface UserProfile {
   status: 'active' | 'inactive';
   isVerified: boolean;
   createdAt: number;
+  updatedAt?: string;
   photoURL?: string;
 }
 

@@ -8,9 +8,11 @@ import { Student, SchoolSettings } from '@/types';
 import { Plus, Search, User, Phone, GraduationCap, X, Save, Trash2, AlertTriangle, Loader2, BookOpen, Hash, DollarSign, Calendar, ChevronRight, Edit2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Students() {
   const router = useRouter();
+  const { profile: currentProfile } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -143,17 +145,19 @@ export default function Students() {
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Student Directory</h1>
           <p className="text-gray-500 font-medium">Manage all enrolled students and their records</p>
         </div>
-        <button 
-          id="open-register-student-button"
-          onClick={() => {
-            setError(null);
-            setIsModalOpen(true);
-          }}
-          className="px-6 py-3 gradient-bg text-white font-bold rounded-2xl shadow-xl shadow-purple-100 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
-        >
-          <Plus size={20} />
-          Register Student
-        </button>
+        {currentProfile?.role !== 'auditor' && (
+          <button 
+            id="open-register-student-button"
+            onClick={() => {
+              setError(null);
+              setIsModalOpen(true);
+            }}
+            className="px-6 py-3 gradient-bg text-white font-bold rounded-2xl shadow-xl shadow-purple-100 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
+          >
+            <Plus size={20} />
+            Register Student
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
@@ -243,20 +247,24 @@ export default function Students() {
                     )}>
                       {student.status}
                     </span>
-                    <button
-                      onClick={() => handleOpenEditModal(student)}
-                      className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center border border-transparent hover:border-blue-100"
-                      title="Edit Student"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button
-                      onClick={() => setDeletingStudent(student)}
-                      className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center border border-transparent hover:border-rose-100"
-                      title="Delete Student Records & Clear Payments"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    {currentProfile?.role !== 'auditor' && (
+                      <>
+                        <button
+                          onClick={() => handleOpenEditModal(student)}
+                          className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center border border-transparent hover:border-blue-100"
+                          title="Edit Student"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => setDeletingStudent(student)}
+                          className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center border border-transparent hover:border-rose-100"
+                          title="Delete Student Records & Clear Payments"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}

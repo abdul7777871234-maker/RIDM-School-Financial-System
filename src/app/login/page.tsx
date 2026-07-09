@@ -31,16 +31,43 @@ export default function Login() {
       });
 
       if (authError) {
-        setError('Authentication failed. Invalid system credentials.');
+        setError(authError.message || 'Authentication failed. Invalid system credentials.');
         setLoading(false);
         return;
       }
       
+      const sessionUser = data.user;
+      if (sessionUser) {
+        // Step 2: Critical Status Check (Guideline 8 & 9)
+        // Verify if the user profile is active in the public database
+        // We use maybeSingle() to avoid throwing an error if the profile hasn't synchronized yet
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('status')
+          .eq('id', sessionUser.id)
+          .maybeSingle();
+
+        if (profileError) {
+          // Log the error but don't block login unless it's a definitive "inactive" status
+          console.warn('Minor synchronization delay during access verification:', profileError);
+        }
+
+        if (profile && profile.status === 'inactive') {
+          await supabase.auth.signOut();
+          setError('User Disabled: Your institutional access has been revoked by a Super Administrator.');
+          setLoading(false);
+          return;
+        }
+      }
+
       window.location.replace('/');
       return;
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Access sequence failed. Tactical override required.');
+    } catch (error: any) {
+      console.error('Access sequence failed:', {
+        message: error.message,
+        code: error.code
+      });
+      setError(error.message || 'Access sequence failed. Tactical override required.');
       setLoading(false);
     } finally {
       setLoading(false);

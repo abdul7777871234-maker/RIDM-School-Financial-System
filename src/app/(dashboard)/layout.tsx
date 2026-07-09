@@ -4,9 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { 
   LayoutDashboard, 
   Users, 
+  UserCog,
   Receipt, 
   Clock, 
   Settings, 
@@ -69,10 +71,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, []);
 
   const handleLogout = async () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('ridm_local_session');
+    try {
+      await supabase.auth.signOut();
+      router.push('/login');
+    } catch (error: any) {
+      console.error('Error logging out:', {
+        message: error.message,
+        code: error.code
+      });
+      router.push('/login');
     }
-    router.push('/login');
   };
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,9 +135,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Installments', href: '/installments', icon: Clock },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
     { name: 'Refunds', href: '/refunds', icon: RotateCcw },
+    { name: 'Users', href: '/users', icon: UserCog },
     { name: 'System Logs', href: '/audit-logs', icon: Search },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
+
+  const filteredNavItems = React.useMemo(() => {
+    if (!profile) return [];
+    const role = profile.role;
+    
+    // Super Admin has everything
+    if (role === 'super_admin') return navItems;
+    
+    // Admin has everything except User Management
+    if (role === 'admin') {
+      return navItems.filter(item => item.name !== 'Users' && item.name !== 'System Logs' && item.name !== 'Settings');
+    }
+    
+    if (role === 'accountant') {
+      return navItems.filter(item => ['Dashboard', 'Students', 'Fees & Status', 'New Payment', 'Cash Calculator', 'Installments', 'Reports', 'Refunds'].includes(item.name));
+    }
+    if (role === 'auditor') {
+      return navItems.filter(item => ['Dashboard', 'Students', 'Fees & Status', 'Reports', 'Refunds'].includes(item.name));
+    }
+    return [];
+  }, [profile]);
 
   React.useEffect(() => {
     if (!loading && !profile) {
@@ -147,8 +177,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           schoolName: data.schoolName || 'RIDM Student Financial System',
           schoolLogo: data.schoolLogo || '/logo.png',
         });
-      } catch (err) {
-        console.error('Error fetching settings in layout:', err);
+      } catch (error: any) {
+        console.error('Error fetching settings in layout:', {
+          message: error.message,
+          code: error.code
+        });
       }
     };
 
@@ -198,7 +231,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside 
         id="dashboard-sidebar"
         className={cn(
-          "bg-white border-r border-gray-100 flex flex-col fixed inset-y-0 shadow-lg lg:shadow-sm z-50 transition-all duration-300 overflow-hidden",
+          "bg-white border-r border-gray-100 flex flex-col fixed inset-y-0 shadow-lg lg:shadow-sm z-50 transition-all duration-300 overflow-hidden print:hidden",
           isSidebarOpen 
             ? "translate-x-0 w-72 lg:w-72" 
             : "-translate-x-full lg:translate-x-0 lg:w-20"
@@ -208,7 +241,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           "transition-all duration-300",
           isSidebarOpen ? "p-8" : "p-5"
         )}>
-          <div className="flex items-center gap-3 w-56">
+          <div className={cn(
+            "flex items-center gap-3",
+            isSidebarOpen ? "w-56" : "w-10 justify-center"
+          )}>
             {schoolSettings.schoolLogo ? (
               <div className="w-10 h-10 rounded-xl border border-gray-100 bg-white flex items-center justify-center p-1.5 overflow-hidden shrink-0 shadow-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -224,8 +260,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             )}
             <div className={cn(
-              "min-w-0 transition-opacity duration-300",
-              isSidebarOpen ? "opacity-100 block" : "opacity-0 hidden"
+              "min-w-0 transition-all duration-300",
+              isSidebarOpen ? "opacity-100 w-auto" : "opacity-0 w-0 pointer-events-none hidden"
             )}>
               <h1 className="font-black text-sm tracking-tight text-gray-900 leading-tight truncate">{schoolSettings.schoolName}</h1>
               <p className="text-[9px] font-black text-purple-600 uppercase tracking-widest leading-none mt-0.5">Financial System</p>
@@ -234,7 +270,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         <nav className="flex-1 px-4 space-y-1 overflow-y-auto pt-4">
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
@@ -374,11 +410,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main Content */}
       <main className={cn(
-        "flex-1 transition-all duration-300 min-w-0 overflow-x-hidden max-w-full",
+        "flex-1 transition-all duration-300 min-w-0 overflow-x-hidden max-w-full print:ml-0 print:p-0",
         isSidebarOpen ? "ml-0 lg:ml-72" : "ml-0 lg:ml-20"
       )}>
         <header className={cn(
-          "h-20 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-40 transition-all duration-300",
+          "h-20 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-40 transition-all duration-300 print:hidden",
           theme === 'color' 
             ? "bg-white/5 backdrop-blur-md border-b border-white/10 text-white"
             : theme === 'dark'
@@ -497,7 +533,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
         </header>
-        <div className="p-3 sm:p-6 md:p-10 max-w-7xl mx-auto w-full min-w-0">
+        <div className="p-3 sm:p-6 md:p-10 max-w-7xl mx-auto w-full min-w-0 print:p-0 print:max-w-none">
           {children}
         </div>
       </main>

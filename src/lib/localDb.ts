@@ -4,192 +4,13 @@ import { supabase } from './supabase';
 // Helper to check if window is defined (browser environment)
 const isBrowser = () => typeof window !== 'undefined';
 
-// Initial Seed Data
-const DEFAULT_STUDENTS: Student[] = [
-  {
-    id: 's_1',
-    studentId: 'R-101',
-    name: 'Ahmed Al-Mansoor',
-    class: 'Class 10-A',
-    parentName: 'Khalid Al-Mansoor',
-    parentContact: '+966 50 123 4567',
-    totalFee: 12000,
-    totalPaid: 4000,
-    remainingBalance: 8000,
-    admissionDate: 1717196400000, // June 1, 2024
-    status: 'active',
-    rollNumber: '10-01',
-    paymentPlan: 'Monthly',
-    lastPaymentDate: 1718060400000
-  },
-  {
-    id: 's_2',
-    studentId: 'R-102',
-    name: 'Fatima Al-Farsi',
-    class: 'Class 12-B',
-    parentName: 'Yousef Al-Farsi',
-    parentContact: '+966 55 987 6543',
-    totalFee: 15000,
-    totalPaid: 15000,
-    remainingBalance: 0,
-    admissionDate: 1714518000000, // May 1, 2024
-    status: 'active',
-    rollNumber: '12-05',
-    paymentPlan: 'Full Payment',
-    lastPaymentDate: 1715036400000
-  },
-  {
-    id: 's_3',
-    studentId: 'R-103',
-    name: 'Omar Farooq',
-    class: 'Class 9-C',
-    parentName: 'Tariq Farooq',
-    parentContact: '+966 54 333 2211',
-    totalFee: 10000,
-    totalPaid: 2500,
-    remainingBalance: 7500,
-    admissionDate: 1719874800000, // July 2, 2024
-    status: 'active',
-    rollNumber: '09-12',
-    paymentPlan: 'Semester',
-    lastPaymentDate: 1720134000000
-  },
-  {
-    id: 's_4',
-    studentId: 'R-104',
-    name: 'Sara Al-Subaie',
-    class: 'Class 11-A',
-    parentName: 'Mohammed Al-Subaie',
-    parentContact: '+966 56 444 5555',
-    totalFee: 13000,
-    totalPaid: 0,
-    remainingBalance: 13000,
-    admissionDate: 1722466800000, // August 1, 2024
-    status: 'active',
-    rollNumber: '11-03',
-    paymentPlan: 'Annual'
-  }
-];
-
-const DEFAULT_PAYMENTS: Payment[] = [
-  {
-    id: 'pay_1',
-    studentId: 'R-101',
-    studentName: 'Ahmed Al-Mansoor',
-    amount: 4000,
-    method: 'cash',
-    date: 1718060400000,
-    feeType: 'Monthly Fee',
-    status: 'success',
-    recordedBy: 'ridmacademy@gmail.com',
-    notes: 'First installment payment'
-  },
-  {
-    id: 'pay_2',
-    studentId: 'R-102',
-    studentName: 'Fatima Al-Farsi',
-    amount: 15000,
-    method: 'credit_card',
-    date: 1715036400000,
-    feeType: 'Full Admission Fee',
-    status: 'success',
-    recordedBy: 'ridmacademy@gmail.com',
-    notes: 'Paid in full at admission'
-  },
-  {
-    id: 'pay_3',
-    studentId: 'R-103',
-    studentName: 'Omar Farooq',
-    amount: 2500,
-    method: 'installment',
-    date: 1720134000000,
-    feeType: 'Semester Fee',
-    status: 'success',
-    recordedBy: 'ridmacademy@gmail.com',
-    notes: 'Semester 1 payment'
-  }
-];
-
-const DEFAULT_REFUNDS: RefundRecord[] = [];
-
-const DEFAULT_INSTALLMENT_PLANS: InstallmentPlan[] = [
-  {
-    id: 'plan_1',
-    studentId: 'R-101',
-    totalAmount: 12000,
-    paidAmount: 4000,
-    remainingAmount: 8000,
-    months: 3,
-    status: 'active',
-    startDate: 1717196400000,
-    installments: [
-      { dueDate: 1717196400000, amount: 4000, status: 'paid' },
-      { dueDate: 1719874800000, amount: 4000, status: 'pending' },
-      { dueDate: 1722466800000, amount: 4000, status: 'pending' }
-    ]
-  }
-];
-
-const DEFAULT_AUDIT_LOGS: AuditLog[] = [
-  {
-    id: 'log_1',
-    userId: 'mock-admin',
-    userName: 'ridmacademy@gmail.com',
-    action: 'Database initialized with offline-mode storage',
-    date: Date.now()
-  }
-];
-
+// Initial Seed Data (Fallbacks if DB is empty or during initialization)
 const DEFAULT_SETTINGS: SchoolSettings = {
   schoolName: 'RIDM Student Financial System',
   schoolLogo: '/logo.png',
   currency: 'SAR',
   theme: 'light'
 };
-
-const DEFAULT_USERS: UserProfile[] = [
-  {
-    uid: 'mock-admin',
-    email: 'ridmacademy@gmail.com',
-    displayName: 'Super Admin',
-    role: 'super_admin',
-    status: 'active',
-    isVerified: true,
-    createdAt: Date.now()
-  }
-];
-
-// LocalStorage Helper Get/Set
-function getStoredItem<T>(key: string, defaultValue: T): T {
-  if (!isBrowser()) return defaultValue;
-  const stored = localStorage.getItem(key);
-  if (!stored) {
-    localStorage.setItem(key, JSON.stringify(defaultValue));
-    return defaultValue;
-  }
-  try {
-    return JSON.parse(stored) as T;
-  } catch (e) {
-    console.error(`Error parsing localStorage key "${key}":`, e);
-    return defaultValue;
-  }
-}
-
-function setStoredItem<T>(key: string, value: T): void {
-  if (!isBrowser()) return;
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
-// Initializer
-export function initializeLocalDb() {
-  getStoredItem('ridm_students', DEFAULT_STUDENTS);
-  getStoredItem('ridm_payments', DEFAULT_PAYMENTS);
-  getStoredItem('ridm_refunds', DEFAULT_REFUNDS);
-  getStoredItem('ridm_installment_plans', DEFAULT_INSTALLMENT_PLANS);
-  getStoredItem('ridm_audit_logs', DEFAULT_AUDIT_LOGS);
-  getStoredItem('ridm_settings', DEFAULT_SETTINGS);
-  getStoredItem('ridm_users', DEFAULT_USERS);
-}
 
 // Mappings between frontend CamelCase and Supabase snake_case
 const mapStudentFromDb = (s: any): Student => ({
@@ -203,11 +24,11 @@ const mapStudentFromDb = (s: any): Student => ({
   monthlyFee: Number(s.monthly_fee) || 0,
   totalPaid: Number(s.total_paid) || 0,
   remainingBalance: Number(s.remaining_balance) || 0,
-  admissionDate: Number(s.admission_date) || Date.now(),
+  admissionDate: s.admission_date ? new Date(s.admission_date).getTime() : Date.now(),
   status: s.status,
   rollNumber: s.roll_number,
   paymentPlan: s.payment_plan,
-  lastPaymentDate: s.last_payment_date ? Number(s.last_payment_date) : undefined
+  lastPaymentDate: s.last_payment_date ? new Date(s.last_payment_date).getTime() : undefined
 });
 
 const mapStudentToDb = (s: Partial<Student>) => ({
@@ -221,11 +42,11 @@ const mapStudentToDb = (s: Partial<Student>) => ({
   monthly_fee: s.monthlyFee,
   total_paid: s.totalPaid,
   remaining_balance: s.remainingBalance,
-  admission_date: s.admissionDate,
+  admission_date: s.admissionDate ? new Date(s.admissionDate).toISOString() : null,
   status: s.status,
   roll_number: s.rollNumber,
   payment_plan: s.paymentPlan,
-  last_payment_date: s.lastPaymentDate
+  last_payment_date: s.lastPaymentDate ? new Date(s.lastPaymentDate).toISOString() : null
 });
 
 const mapPaymentFromDb = (p: any): Payment => ({
@@ -234,7 +55,7 @@ const mapPaymentFromDb = (p: any): Payment => ({
   studentName: p.student_name,
   amount: Number(p.amount) || 0,
   method: p.method,
-  date: Number(p.date) || Date.now(),
+  date: p.date ? new Date(p.date).getTime() : Date.now(),
   feeType: p.fee_type,
   status: p.status,
   recordedBy: p.recorded_by,
@@ -247,7 +68,7 @@ const mapPaymentToDb = (p: Partial<Payment>) => ({
   student_name: p.studentName,
   amount: p.amount,
   method: p.method,
-  date: p.date,
+  date: p.date ? new Date(p.date).toISOString() : new Date().toISOString(),
   fee_type: p.feeType,
   status: p.status,
   recorded_by: p.recordedBy,
@@ -264,7 +85,7 @@ const mapRefundFromDb = (r: any): RefundRecord => ({
   refundPercentage: r.refund_percentage ? Number(r.refund_percentage) : undefined,
   refundAmount: Number(r.refund_amount) || 0,
   remainingRetainedAmount: Number(r.remaining_retained_amount) || 0,
-  date: Number(r.date) || Date.now(),
+  date: r.date ? new Date(r.date).getTime() : Date.now(),
   reason: r.reason,
   processedBy: r.processed_by
 });
@@ -279,7 +100,7 @@ const mapRefundToDb = (r: Partial<RefundRecord>) => ({
   refund_percentage: r.refundPercentage,
   refund_amount: r.refundAmount,
   remaining_retained_amount: r.remainingRetainedAmount,
-  date: r.date,
+  date: r.date ? new Date(r.date).toISOString() : new Date().toISOString(),
   reason: r.reason,
   processed_by: r.processedBy
 });
@@ -292,7 +113,7 @@ const mapPlanFromDb = (p: any): InstallmentPlan => ({
   remainingAmount: Number(p.remaining_amount) || 0,
   months: Number(p.months) || 1,
   status: p.status,
-  startDate: Number(p.start_date) || Date.now(),
+  startDate: p.start_date ? new Date(p.start_date).getTime() : Date.now(),
   installments: typeof p.installments === 'string' ? JSON.parse(p.installments) : (p.installments || [])
 });
 
@@ -304,7 +125,7 @@ const mapPlanToDb = (p: Partial<InstallmentPlan>) => ({
   remaining_amount: p.remainingAmount,
   months: p.months,
   status: p.status,
-  start_date: p.startDate,
+  start_date: p.startDate ? new Date(p.startDate).toISOString() : null,
   installments: p.installments ? (typeof p.installments === 'string' ? p.installments : JSON.stringify(p.installments)) : '[]'
 });
 
@@ -313,7 +134,7 @@ const mapLogFromDb = (l: any): AuditLog => ({
   userId: l.user_id,
   userName: l.user_name,
   action: l.action,
-  date: Number(l.date) || Date.now()
+  date: l.date ? new Date(l.date).getTime() : Date.now()
 });
 
 const mapLogToDb = (l: Partial<AuditLog>) => ({
@@ -321,8 +142,9 @@ const mapLogToDb = (l: Partial<AuditLog>) => ({
   user_id: l.userId,
   user_name: l.userName,
   action: l.action,
-  date: l.date
+  date: l.date ? new Date(l.date).toISOString() : new Date().toISOString()
 });
+
 
 const mapSettingsFromDb = (s: any): SchoolSettings => ({
   schoolName: s.school_name || 'RIDM Student Financial System',
@@ -344,15 +166,21 @@ const mapSettingsToDb = (s: SchoolSettings) => ({
 export async function getStudents(): Promise<Student[]> {
   const { data: students, error } = await supabase.from('students').select('*');
   if (error) {
-    console.error('Error fetching students:', error);
+    console.error('Error fetching students:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    });
     return [];
   }
   return students.map(mapStudentFromDb);
 }
 
 export async function getStudentById(id: string): Promise<Student | null> {
-  const students = await getStudents();
-  return students.find(s => s.id === id || s.studentId === id) || null;
+  const { data: student, error } = await supabase.from('students').select('*').or(`id.eq.${id},student_id.eq.${id}`).single();
+  if (error || !student) return null;
+  return mapStudentFromDb(student);
 }
 
 export async function addStudent(studentData: Partial<Student>): Promise<Student> {
@@ -376,7 +204,11 @@ export async function addStudent(studentData: Partial<Student>): Promise<Student
 
   const { error } = await supabase.from('students').insert(mapStudentToDb(newStudent));
   if (error) {
-    console.error('Supabase addStudent error:', error);
+    console.error('Supabase addStudent error:', {
+      message: error.message,
+      code: error.code,
+      details: error.details
+    });
     throw error;
   }
   return newStudent;
@@ -385,7 +217,10 @@ export async function addStudent(studentData: Partial<Student>): Promise<Student
 export async function updateStudent(studentData: Student): Promise<void> {
   const { error } = await supabase.from('students').update(mapStudentToDb(studentData)).eq('id', studentData.id);
   if (error) {
-    console.error('Supabase updateStudent error:', error);
+    console.error('Supabase updateStudent error:', {
+      message: error.message,
+      code: error.code
+    });
     throw error;
   }
 }
@@ -401,7 +236,10 @@ export async function updateStudentPaymentPlan(id: string, studentId: string, pl
 export async function deleteStudent(studentId: string, customStudentIdField?: string): Promise<void> {
   const { error } = await supabase.from('students').delete().eq('id', studentId);
   if (error) {
-    console.error('Supabase deleteStudent error:', error);
+    console.error('Supabase deleteStudent error:', {
+      message: error.message,
+      code: error.code
+    });
     throw error;
   }
   
@@ -412,16 +250,19 @@ export async function deleteStudent(studentId: string, customStudentIdField?: st
 
 // 2. PAYMENTS API
 export async function getPayments(): Promise<Payment[]> {
-  const { data: payments, error } = await supabase.from('payments').select('*');
+  const { data: payments, error } = await supabase.from('payments').select('*').order('date', { ascending: false });
   if (error) {
-    console.error('Error fetching payments:', error);
+    console.error('Error fetching payments:', {
+      message: error.message,
+      code: error.code
+    });
     return [];
   }
   return payments.map(mapPaymentFromDb);
 }
 
 export async function getPaymentsByStudentId(studentId: string): Promise<Payment[]> {
-  const { data: payments, error } = await supabase.from('payments').select('*').eq('student_id', studentId);
+  const { data: payments, error } = await supabase.from('payments').select('*').eq('student_id', studentId).order('date', { ascending: false });
   if (error) {
     console.error('Error fetching payments by student id:', error);
     return [];
@@ -439,7 +280,10 @@ export async function addPayment(paymentData: Omit<Payment, 'id'>): Promise<Paym
 
   const { error } = await supabase.from('payments').insert(mapPaymentToDb(newPayment));
   if (error) {
-    console.error('Supabase addPayment error:', error);
+    console.error('Supabase addPayment error:', {
+      message: error.message,
+      code: error.code
+    });
     throw error;
   }
 
@@ -459,22 +303,10 @@ export async function addPayment(paymentData: Omit<Payment, 'id'>): Promise<Paym
 }
 
 export async function refundPayment(paymentId: string): Promise<void> {
-  const payments = await getPayments();
-  const index = payments.findIndex(p => p.id === paymentId);
-  if (index !== -1) {
-    const p = payments[index];
-    p.status = 'refunded';
-    setStoredItem('ridm_payments', payments);
-
-    // Revert student record
-    const students = await getStudents();
-    const studentIndex = students.findIndex(s => s.studentId === p.studentId);
-    if (studentIndex !== -1) {
-      const s = students[studentIndex];
-      s.totalPaid = Math.max(0, (Number(s.totalPaid) || 0) - p.amount);
-      s.remainingBalance = Math.max(0, (Number(s.totalFee) || 0) - s.totalPaid);
-      setStoredItem('ridm_students', students);
-    }
+  const { error } = await supabase.from('payments').update({ status: 'refunded' }).eq('id', paymentId);
+  if (error) {
+    console.error('Error refunding payment:', error);
+    throw error;
   }
 }
 
@@ -486,31 +318,30 @@ export async function processRefund(
   reason: string, 
   processedBy: string
 ): Promise<void> {
-  const payments = await getPayments();
-  const index = payments.findIndex(p => p.id === paymentId);
-  if (index === -1) throw new Error("Payment record not found");
+  // 1. Get payment details
+  const { data: p, error: pError } = await supabase.from('payments').select('*').eq('id', paymentId).single();
+  if (pError || !p) throw new Error("Payment record not found");
 
-  const p = payments[index];
-  if (refundAmount > p.amount) {
+  if (refundAmount > Number(p.amount)) {
     throw new Error("Refund amount exceeds paid amount");
   }
 
-  // Deduct refundAmount from student's paid amount
-  const students = await getStudents();
-  const studentIndex = students.findIndex(s => s.studentId === p.studentId);
-  if (studentIndex !== -1) {
-    const s = students[studentIndex];
-    s.totalPaid = Math.max(0, (Number(s.totalPaid) || 0) - refundAmount);
-    s.remainingBalance = Math.max(0, (Number(s.totalFee) || 0) - s.totalPaid);
-    setStoredItem('ridm_students', students);
+  // 2. Deduct from student balance
+  const { data: student, error: sError } = await supabase.from('students').select('*').eq('student_id', p.student_id).single();
+  if (student) {
+    const updatedPaid = Math.max(0, (Number(student.total_paid) || 0) - refundAmount);
+    const updatedBalance = Math.max(0, (Number(student.total_fee) || 0) - updatedPaid);
+    await supabase.from('students').update({
+      total_paid: updatedPaid,
+      remaining_balance: updatedBalance
+    }).eq('id', student.id);
   }
 
-  // Push new RefundRecord
-  const refunds = await getRefunds();
+  // 3. Create Refund Record
   const newRefund: RefundRecord = {
     id: `ref_${Date.now()}`,
-    studentId: p.studentId,
-    studentName: p.studentName,
+    studentId: p.student_id,
+    studentName: p.student_name,
     paymentId,
     originalPaidAmount: p.amount,
     refundType,
@@ -521,38 +352,47 @@ export async function processRefund(
     reason,
     processedBy
   };
-  refunds.unshift(newRefund);
-  setStoredItem('ridm_refunds', refunds);
+  
+  const { error: refError } = await supabase.from('refunds').insert(mapRefundToDb(newRefund));
+  if (refError) throw refError;
 
-  // Update payment status/amount
+  // 4. Update payment status
   const remaining = p.amount - refundAmount;
-  if (remaining === 0) {
-    p.status = 'refunded';
-  } else {
-    p.amount = remaining;
-  }
-  setStoredItem('ridm_payments', payments);
+  const newStatus = remaining === 0 ? 'refunded' : 'success';
+  await supabase.from('payments').update({ 
+    amount: remaining,
+    status: newStatus 
+  }).eq('id', paymentId);
 }
 
 export async function getRefunds(): Promise<RefundRecord[]> {
-  initializeLocalDb();
-  return getStoredItem<RefundRecord[]>('ridm_refunds', DEFAULT_REFUNDS);
+  const { data, error } = await supabase.from('refunds').select('*').order('date', { ascending: false });
+  if (error) {
+    console.error('Error fetching refunds:', error);
+    return [];
+  }
+  return data.map(mapRefundFromDb);
 }
 
 export async function deleteRefund(refundId: string): Promise<void> {
-  const refunds = await getRefunds();
-  const updated = refunds.filter(r => r.id !== refundId);
-  setStoredItem('ridm_refunds', updated);
+  const { error } = await supabase.from('refunds').delete().eq('id', refundId);
+  if (error) throw error;
 }
 
 export async function clearAllRefunds(): Promise<void> {
-  setStoredItem('ridm_refunds', []);
+  // Use a filter that matches all if possible, or just truncate
+  const { error } = await supabase.from('refunds').delete().neq('id', 'null');
+  if (error) throw error;
 }
 
 // 3. INSTALLMENTS API
 export async function getInstallmentPlans(): Promise<InstallmentPlan[]> {
-  initializeLocalDb();
-  return getStoredItem<InstallmentPlan[]>('ridm_installment_plans', DEFAULT_INSTALLMENT_PLANS);
+  const { data, error } = await supabase.from('installment_plans').select('*');
+  if (error) {
+    console.error('Error fetching installment plans:', error);
+    return [];
+  }
+  return data.map(mapPlanFromDb);
 }
 
 export async function addInstallmentPlan(planData: Omit<InstallmentPlan, 'id'>): Promise<InstallmentPlan> {
@@ -561,16 +401,19 @@ export async function addInstallmentPlan(planData: Omit<InstallmentPlan, 'id'>):
     ...planData
   };
 
-  const plans = await getInstallmentPlans();
-  plans.push(newPlan);
-  setStoredItem('ridm_installment_plans', plans);
+  const { error } = await supabase.from('installment_plans').insert(mapPlanToDb(newPlan));
+  if (error) throw error;
   return newPlan;
 }
 
 // 4. AUDIT LOGS API
 export async function getAuditLogs(): Promise<AuditLog[]> {
-  initializeLocalDb();
-  return getStoredItem<AuditLog[]>('ridm_audit_logs', DEFAULT_AUDIT_LOGS);
+  const { data, error } = await supabase.from('audit_logs').select('*').order('date', { ascending: false });
+  if (error) {
+    console.error('Error fetching audit logs:', error);
+    return [];
+  }
+  return data.map(mapLogFromDb);
 }
 
 export async function addAuditLog(userId: string, userName: string, action: string): Promise<AuditLog> {
@@ -582,9 +425,10 @@ export async function addAuditLog(userId: string, userName: string, action: stri
     date: Date.now()
   };
 
-  const logs = await getAuditLogs();
-  logs.unshift(newLog);
-  setStoredItem('ridm_audit_logs', logs);
+  const { error } = await supabase.from('audit_logs').insert(mapLogToDb(newLog));
+  if (error) {
+    console.error('Error adding audit log:', error);
+  }
   return newLog;
 }
 
@@ -596,35 +440,62 @@ function mapUserFromDb(row: any): UserProfile {
     role: row.role as UserRole,
     status: row.status as 'active' | 'inactive',
     isVerified: row.is_verified || false,
-    createdAt: Number(row.created_at) || Date.now(),
+    createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+    updatedAt: row.updated_at || undefined,
     photoURL: row.photo_url || undefined
   };
 }
 
-// 5. USERS API (Updated to use Supabase with localStorage fallback)
+// 5. USERS API (Strictly Supabase-based with Self-Healing Sync)
 export async function getUsers(): Promise<UserProfile[]> {
   try {
-    const { data, error } = await supabase.from('users').select('*');
-    if (error) throw error;
-    if (data) {
-      return data.map(mapUserFromDb);
+    // We explicitly check for browser environment to ensure relative fetch works
+    if (!isBrowser()) {
+      throw new Error('getUsers API fetch can only be performed from the browser.');
     }
-  } catch (error) {
-    console.error('Error fetching users from Supabase, falling back to localStorage:', error);
+
+    const res = await fetch('/api/users');
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      let errorMessage = 'Failed to fetch and synchronize users';
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error || errorMessage;
+      } catch (e) {
+        errorMessage = `${errorMessage}: ${res.status} ${res.statusText}`;
+      }
+      throw new Error(errorMessage);
+    }
+
+    const data = await res.json();
+    return data.map(mapUserFromDb);
+  } catch (error: any) {
+    // If it's a "Failed to fetch" or other network error, we log it and proceed to fallback
+    if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+      console.warn('Network error fetching users from API (likely service role key missing), falling back to direct DB access.');
+    } else {
+      console.error('Error fetching synchronized users from API, falling back to direct DB fetch:', error);
+    }
+
+    // Fallback: Direct Supabase fetch using the client-side anon key
+    const { data, error: dbError } = await supabase.from('users').select('*').order('created_at', { ascending: false });
+    
+    if (dbError) {
+      console.error('Critical: Fallback fetch also failed:', {
+        message: dbError.message,
+        code: dbError.code
+      });
+      throw new Error(`System Error: Unable to retrieve users list. ${dbError.message}`);
+    }
+    
+    return data ? data.map(mapUserFromDb) : [];
   }
-  initializeLocalDb();
-  return getStoredItem<UserProfile[]>('ridm_users', DEFAULT_USERS);
 }
 
-export async function addUser(email: string, role: UserRole, customUid?: string): Promise<UserProfile> {
-  const generatedUid = customUid || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-
+export async function addUser(email: string, role: UserRole, uid: string): Promise<UserProfile> {
   const newUser: UserProfile = {
-    uid: generatedUid,
+    uid,
     email,
     displayName: email.split('@')[0],
     role,
@@ -633,70 +504,65 @@ export async function addUser(email: string, role: UserRole, customUid?: string)
     createdAt: Date.now()
   };
 
-  try {
-    const { error } = await supabase.from('users').insert({
-      id: newUser.uid,
-      email: newUser.email,
-      display_name: newUser.displayName,
-      role: newUser.role,
-      status: newUser.status,
-      is_verified: newUser.isVerified,
-      created_at: newUser.createdAt
-    });
-    if (error) throw error;
-    console.log('User created successfully in Supabase users table.');
-  } catch (err) {
-    console.error('Error inserting user in Supabase, saving to local state fallback:', err);
-  }
+  const { error } = await supabase.from('users').upsert({
+    id: newUser.uid,
+    email: newUser.email,
+    display_name: newUser.displayName,
+    role: newUser.role,
+    status: newUser.status,
+    is_verified: newUser.isVerified
+  });
 
-  // Sync to local state fallback
-  const users = getStoredItem<UserProfile[]>('ridm_users', DEFAULT_USERS);
-  users.push(newUser);
-  setStoredItem('ridm_users', users);
+  if (error) {
+    console.error('Error syncing user to Supabase:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    });
+    throw new Error(`Failed to sync user: ${error.message}`);
+  }
 
   return newUser;
 }
 
 export async function updateUserStatus(uid: string, status: 'active' | 'inactive'): Promise<void> {
-  try {
-    const { error } = await supabase.from('users').update({ status }).eq('id', uid);
-    if (error) throw error;
-    console.log('Updated user status in Supabase.');
-  } catch (err) {
-    console.error('Error updating user status in Supabase, updating locally:', err);
-  }
-
-  // Update locally as well
-  const users = getStoredItem<UserProfile[]>('ridm_users', DEFAULT_USERS);
-  const index = users.findIndex(u => u.uid === uid);
-  if (index !== -1) {
-    users[index].status = status;
-    setStoredItem('ridm_users', users);
+  const { error } = await supabase.from('users').update({ status }).eq('id', uid);
+  if (error) {
+    console.error('Error updating user status in Supabase:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    });
+    throw new Error(`Failed to update user status: ${error.message}`);
   }
 }
 
 export async function deleteUser(uid: string): Promise<void> {
-  try {
-    const { error } = await supabase.from('users').delete().eq('id', uid);
-    if (error) throw error;
-    console.log('Deleted user from Supabase.');
-  } catch (err) {
-    console.error('Error deleting user from Supabase, deleting locally:', err);
+  const { error } = await supabase.from('users').delete().eq('id', uid);
+  if (error) {
+    console.error('Error deleting user from Supabase:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    });
+    throw new Error(`Failed to delete user: ${error.message}`);
   }
-
-  // Delete locally as well
-  const users = getStoredItem<UserProfile[]>('ridm_users', DEFAULT_USERS);
-  const updated = users.filter(u => u.uid !== uid);
-  setStoredItem('ridm_users', updated);
 }
 
 // 6. SETTINGS API
 export async function getSettings(): Promise<SchoolSettings> {
-  initializeLocalDb();
-  return getStoredItem<SchoolSettings>('ridm_settings', DEFAULT_SETTINGS);
+  const { data, error } = await supabase.from('settings').select('*').eq('id', 'school_settings').single();
+  if (error || !data) {
+    return DEFAULT_SETTINGS;
+  }
+  return mapSettingsFromDb(data);
 }
 
 export async function saveSettings(settings: SchoolSettings): Promise<void> {
-  setStoredItem('ridm_settings', settings);
+  const { error } = await supabase.from('settings').upsert(mapSettingsToDb(settings));
+  if (error) throw error;
   if (isBrowser()) window.dispatchEvent(new Event('settings-updated'));
 }

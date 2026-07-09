@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getUsers, addUser, updateUserStatus, deleteUser } from '@/lib/localDb';
+import { getUsers } from '@/lib/localDb';
+import { supabase } from '@/lib/supabase';
 import { 
   UserPlus, 
   ShieldCheck, 
@@ -12,7 +13,8 @@ import {
   Trash2,
   AlertTriangle,
   X,
-  Check
+  Check,
+  ShieldAlert
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserProfile, UserRole } from '@/types';
@@ -20,7 +22,7 @@ import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Users() {
-  const { profile: currentProfile } = useAuth();
+  const { profile: currentProfile, refreshSession } = useAuth();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -29,7 +31,7 @@ export default function Users() {
   const [newUser, setNewUser] = useState({
     username: '',
     password: '',
-    role: 'viewer' as UserRole,
+    role: 'accountant' as UserRole,
   });
 
   // Custom visual feedback state instead of browser alerts
@@ -43,6 +45,39 @@ export default function Users() {
       return () => clearTimeout(timer);
     }
   }, [toast]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const data = await getUsers();
+        setUsers(data);
+      } catch (error: any) {
+        console.error("Error fetching users:", {
+          message: error.message,
+          details: error.details,
+          code: error.code
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  // Access Control: Only Super Admins can manage users
+  if (currentProfile && currentProfile.role !== 'super_admin') {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6">
+        <div className="w-20 h-20 rounded-3xl bg-red-50 text-red-500 flex items-center justify-center mb-6">
+          <ShieldAlert size={40} />
+        </div>
+        <h1 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Security Alert: Access Forbidden</h1>
+        <p className="text-gray-500 max-w-md font-medium">
+          The User Management module is strictly reserved for Super Administrators. Your attempt has been logged for security audit purposes.
+        </p>
+      </div>
+    );
+  }
 
   const handleDeleteUser = (uid: string, email: string) => {
     if (currentProfile && currentProfile.uid === uid) {
@@ -60,38 +95,31 @@ export default function Users() {
     if (!confirmDelete) return;
     const { uid } = confirmDelete;
     try {
-      // First delete from Supabase Auth
-      await fetch('/api/users/delete', {
+      setLoading(true);
+      // Delete from both Auth and public database via single API call
+      const response = await fetch('/api/users/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid })
       });
 
-      // Then delete from public database table
-      await deleteUser(uid);
+      const resData = await response.json();
+      if (!response.ok) throw new Error(resData.error || 'Failed to delete user');
+
       setUsers(users.filter(u => u.uid !== uid));
-      setToast({ message: "User deleted successfully from database.", type: 'success' });
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      setToast({ message: "Failed to delete user.", type: 'error' });
+      setToast({ message: "User deleted successfully from system.", type: 'success' });
+    } catch (error: any) {
+      console.error("Error deleting user:", {
+        message: error.message,
+        details: error.details,
+        code: error.code
+      });
+      setToast({ message: `Failed to delete user: ${error.message}`, type: 'error' });
     } finally {
       setConfirmDelete(null);
+      setLoading(false);
     }
   };
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const data = await getUsers();
-        setUsers(data);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUsers();
-  }, []);
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,24 +128,29 @@ export default function Users() {
       const response = await fetch('/api/users/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newUser)
+        body: JSON.stringify({ ...newUser, requesterUid: currentProfile?.uid })
       });
 
       const resData = await response.json();
-      if (!resData.success) throw new Error(resData.error);
+      if (!response.ok) {
+        // If server returns structured error, extract message. Otherwise fallback.
+        const errorMessage = typeof resData.error === 'string' ? resData.error : (resData.error?.message || 'Failed to add user');
+        throw new Error(errorMessage);
+      }
 
-      // Persist the user in the client-side local database
-      await addUser(resData.email, newUser.role, resData.uid);
-
-      // Re-fetch users to get the fresh profile
-      const updatedUsers = await getUsers();
-      setUsers(updatedUsers);
+      // Re-fetch users to get the fresh profiles directly from Supabase
+      const data = await getUsers();
+      setUsers(data);
       
       setShowAdd(false);
-      setNewUser({ username: '', password: '', role: 'viewer' });
-      setToast({ message: 'User added successfully!', type: 'success' });
+      setNewUser({ username: '', password: '', role: 'accountant' });
+      setToast({ message: 'User created and synchronized successfully!', type: 'success' });
     } catch (error: any) {
-      console.error("Error adding user:", error);
+      console.error("Error adding user:", {
+        message: error.message,
+        details: error.details,
+        code: error.code
+      });
       setToast({ message: `Error: ${error.message}`, type: 'error' });
     } finally {
       setLoading(false);
@@ -127,12 +160,55 @@ export default function Users() {
   const toggleStatus = async (user: UserProfile) => {
     const newStatus = user.status === 'active' ? 'inactive' : 'active';
     try {
-      await updateUserStatus(user.uid, newStatus);
-      setUsers(users.map(u => u.uid === user.uid ? { ...u, status: newStatus } : u));
+      const response = await fetch('/api/users/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: user.uid, status: newStatus, version: user.updatedAt })
+      });
+
+      const resData = await response.json();
+      if (!response.ok) throw new Error(resData.error || 'Failed to update user status');
+
+      setUsers(users.map(u => u.uid === user.uid ? { ...u, status: newStatus, updatedAt: resData.updatedAt } : u));
       setToast({ message: `User status changed to ${newStatus}.`, type: 'success' });
-    } catch (error) {
-      console.error("Error updating status:", error);
-      setToast({ message: "Failed to update user status.", type: 'error' });
+    } catch (error: any) {
+      console.error("Error updating status:", {
+        message: error.message,
+        details: error.details,
+        code: error.code
+      });
+      setToast({ message: `Failed to update user status: ${error.message}`, type: 'error' });
+    }
+  };
+
+  const handleRoleChange = async (uid: string, newRole: UserRole) => {
+    try {
+      setLoading(true);
+      const targetUser = users.find(u => u.uid === uid);
+      const response = await fetch('/api/users/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, role: newRole, version: targetUser?.updatedAt })
+      });
+
+      const resData = await response.json();
+      if (!response.ok) throw new Error(resData.error || 'Failed to update user role');
+
+      setUsers(users.map(u => u.uid === uid ? { ...u, role: newRole, updatedAt: resData.updatedAt } : u));
+      setToast({ message: `User role successfully updated to ${newRole.replace('_', ' ')}.`, type: 'success' });
+
+      if (currentProfile && currentProfile.uid === uid) {
+        await refreshSession();
+      }
+    } catch (error: any) {
+      console.error("Error updating role:", {
+        message: error.message,
+        details: error.details,
+        code: error.code
+      });
+      setToast({ message: `Failed to update user role: ${error.message}`, type: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -179,37 +255,27 @@ export default function Users() {
     reader.readAsDataURL(file);
   };
 
-  const saveUserAvatar = (uid: string, photoURL: string) => {
-    setUsers(prev => prev.map(u => u.uid === uid ? { ...u, photoURL } : u));
-    
-    if (typeof window !== 'undefined') {
-      const storedUsersStr = localStorage.getItem('ridm_users');
-      if (storedUsersStr) {
-        try {
-          const allUsers = JSON.parse(storedUsersStr);
-          const index = allUsers.findIndex((u: any) => u.uid === uid);
-          if (index !== -1) {
-            allUsers[index].photoURL = photoURL;
-            localStorage.setItem('ridm_users', JSON.stringify(allUsers));
-          }
-        } catch (e) {
-          console.error(e);
-        }
+  const saveUserAvatar = async (uid: string, photoURL: string) => {
+    try {
+      // Update avatar in Supabase directly
+      const { error } = await supabase.from('users').update({ photo_url: photoURL }).eq('id', uid);
+      if (error) throw error;
+      
+      setUsers(prev => prev.map(u => u.uid === uid ? { ...u, photoURL } : u));
+      
+      // If it's the current user, notify other components
+      if (currentProfile && currentProfile.uid === uid) {
+        window.dispatchEvent(new Event('profile-updated'));
       }
       
-      const localSess = localStorage.getItem('ridm_local_session');
-      if (localSess) {
-        try {
-          const parsed = JSON.parse(localSess);
-          if (parsed.uid === uid || (uid === 'admin-user' && parsed.uid === 'admin-user') || (uid === 'mock-admin' && parsed.uid === 'mock-admin')) {
-            parsed.photoURL = photoURL;
-            localStorage.setItem('ridm_local_session', JSON.stringify(parsed));
-            window.dispatchEvent(new Event('profile-updated'));
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      }
+      setToast({ message: "Profile picture updated successfully.", type: 'success' });
+    } catch (error: any) {
+      console.error("Error saving avatar:", {
+        message: error.message,
+        details: error.details,
+        code: error.code
+      });
+      setToast({ message: "Failed to save profile picture.", type: 'error' });
     }
   };
 
@@ -240,20 +306,20 @@ export default function Users() {
             </h3>
             <div className="space-y-4">
               <div className="p-4 rounded-2xl bg-purple-50 space-y-1">
-                <p className="text-xs font-black text-purple-600 uppercase tracking-widest">Admin</p>
-                <p className="text-xs text-purple-400 font-medium leading-relaxed">Full system access, manage users, edit all records.</p>
+                <p className="text-xs font-black text-purple-600 uppercase tracking-widest">Super Admin</p>
+                <p className="text-xs text-purple-500 font-medium leading-relaxed">Full system access, user management, and security overrides.</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-indigo-50 space-y-1">
+                <p className="text-xs font-black text-indigo-600 uppercase tracking-widest">Admin</p>
+                <p className="text-xs text-indigo-500 font-medium leading-relaxed">Operational management over students, records, and financial systems.</p>
               </div>
               <div className="p-4 rounded-2xl bg-pink-50 space-y-1">
-                <p className="text-xs font-black text-pink-600 uppercase tracking-widest">Manager</p>
-                <p className="text-xs text-pink-400 font-medium leading-relaxed">Accounting access, produce reports, edit students.</p>
+                <p className="text-xs font-black text-pink-600 uppercase tracking-widest">Accountant</p>
+                <p className="text-xs text-pink-500 font-medium leading-relaxed">Register students, collect fees, manage installments and refunds.</p>
               </div>
               <div className="p-4 rounded-2xl bg-blue-50 space-y-1">
-                <p className="text-xs font-black text-blue-600 uppercase tracking-widest">Accountant</p>
-                <p className="text-xs text-blue-400 font-medium leading-relaxed">Payment entry, receipt printing, view history.</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-gray-50 space-y-1">
-                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Viewer</p>
-                <p className="text-xs text-gray-400 font-medium leading-relaxed">Read-only access across the entire dashboard.</p>
+                <p className="text-xs font-black text-blue-600 uppercase tracking-widest">Auditor</p>
+                <p className="text-xs text-blue-500 font-medium leading-relaxed">View-only access to dashboard, income, payments, and financial reports.</p>
               </div>
             </div>
           </div>
@@ -299,9 +365,9 @@ export default function Users() {
                     value={newUser.role}
                     onChange={(e) => setNewUser({...newUser, role: e.target.value as UserRole})}
                   >
-                    <option value="viewer">Viewer</option>
                     <option value="accountant">Accountant</option>
-                    <option value="manager">Manager</option>
+                    <option value="auditor">Auditor</option>
+                    <option value="admin">Admin</option>
                     <option value="super_admin">Super Admin</option>
                   </select>
                 </div>
@@ -386,15 +452,36 @@ export default function Users() {
                         </div>
                       </td>
                       <td className="px-8 py-4">
-                        <span className={cn(
-                          "px-3 py-1 rounded-lg text-xs font-black uppercase tracking-tighter",
-                          u.role === 'super_admin' ? "bg-purple-100 text-purple-700" :
-                          u.role === 'manager' ? "bg-pink-100 text-pink-700" :
-                          u.role === 'accountant' ? "bg-blue-100 text-blue-700" :
-                          "bg-gray-100 text-gray-700"
-                        )}>
-                          {u.role.replace('_', ' ')}
-                        </span>
+                        {currentProfile && (currentProfile.role === 'super_admin' || currentProfile.role === 'admin') && u.uid !== currentProfile.uid ? (
+                          <select
+                            value={u.role}
+                            onChange={(e) => handleRoleChange(u.uid, e.target.value as UserRole)}
+                            className={cn(
+                              "px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-tighter cursor-pointer border border-transparent outline-none focus:ring-2 focus:ring-purple-500",
+                              u.role === 'super_admin' ? "bg-purple-100 text-purple-700" :
+                              u.role === 'admin' ? "bg-indigo-100 text-indigo-700" :
+                              u.role === 'accountant' ? "bg-pink-100 text-pink-700" :
+                              u.role === 'auditor' ? "bg-blue-100 text-blue-700" :
+                              "bg-gray-100 text-gray-700"
+                            )}
+                          >
+                            <option value="accountant">Accountant</option>
+                            <option value="auditor">Auditor</option>
+                            <option value="admin">Admin</option>
+                            <option value="super_admin">Super Admin</option>
+                          </select>
+                        ) : (
+                          <span className={cn(
+                            "px-3 py-1 rounded-lg text-xs font-black uppercase tracking-tighter inline-block",
+                            u.role === 'super_admin' ? "bg-purple-100 text-purple-700" :
+                            u.role === 'admin' ? "bg-indigo-100 text-indigo-700" :
+                            u.role === 'accountant' ? "bg-pink-100 text-pink-700" :
+                            u.role === 'auditor' ? "bg-blue-100 text-blue-700" :
+                            "bg-gray-100 text-gray-700"
+                          )}>
+                            {u.role.replace('_', ' ')}
+                          </span>
+                        )}
                       </td>
                       <td className="px-8 py-4">
                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">{format(u.createdAt, 'MMM dd, yyyy')}</p>

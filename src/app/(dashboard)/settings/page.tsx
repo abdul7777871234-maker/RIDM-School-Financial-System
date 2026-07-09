@@ -12,13 +12,15 @@ import {
   UserCog,
   ChevronRight,
   Lock,
-  RefreshCw
+  RefreshCw,
+  ShieldAlert
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SchoolSettings } from '@/types';
 import Link from 'next/link';
 import { Database } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Section = ({ title, description, icon: Icon, children }: any) => (
   <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 sm:p-8 space-y-6">
@@ -38,6 +40,7 @@ const Section = ({ title, description, icon: Icon, children }: any) => (
 );
 
 export default function Settings() {
+  const { profile: currentProfile } = useAuth();
   const [settings, setSettings] = useState<SchoolSettings>({
     schoolName: '',
     currency: 'SAR',
@@ -64,6 +67,21 @@ export default function Settings() {
     };
     fetchSettings();
   }, []);
+
+  // Access Control: Auditors cannot view or change settings
+  if (currentProfile && currentProfile.role === 'auditor') {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6">
+        <div className="w-20 h-20 rounded-3xl bg-amber-50 text-amber-500 flex items-center justify-center mb-6">
+          <ShieldAlert size={40} />
+        </div>
+        <h1 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Access Restricted</h1>
+        <p className="text-gray-500 max-w-md font-medium">
+          As an Auditor, you do not have permission to view or modify system settings.
+        </p>
+      </div>
+    );
+  }
 
   const handleUpdatePassword = async (e?: React.FormEvent | React.KeyboardEvent | React.MouseEvent) => {
     if (e) {
