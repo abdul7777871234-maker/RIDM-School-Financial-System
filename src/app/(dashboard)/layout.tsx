@@ -201,10 +201,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           "bg-white border-r border-gray-100 flex flex-col fixed inset-y-0 shadow-lg lg:shadow-sm z-50 transition-all duration-300 overflow-hidden",
           isSidebarOpen 
             ? "translate-x-0 w-72 lg:w-72" 
-            : "-translate-x-full lg:translate-x-0 lg:w-20 lg:hover:w-72 group"
+            : "-translate-x-full lg:translate-x-0 lg:w-20"
         )}
       >
-        <div className="p-5 group-hover:p-8 transition-all duration-300">
+        <div className={cn(
+          "transition-all duration-300",
+          isSidebarOpen ? "p-8" : "p-5"
+        )}>
           <div className="flex items-center gap-3 w-56">
             {schoolSettings.schoolLogo ? (
               <div className="w-10 h-10 rounded-xl border border-gray-100 bg-white flex items-center justify-center p-1.5 overflow-hidden shrink-0 shadow-sm">
@@ -222,7 +225,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
             <div className={cn(
               "min-w-0 transition-opacity duration-300",
-              isSidebarOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              isSidebarOpen ? "opacity-100 block" : "opacity-0 hidden"
             )}>
               <h1 className="font-black text-sm tracking-tight text-gray-900 leading-tight truncate">{schoolSettings.schoolName}</h1>
               <p className="text-[9px] font-black text-purple-600 uppercase tracking-widest leading-none mt-0.5">Financial System</p>
@@ -240,31 +243,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onClick={() => setIsSidebarOpen(false)}
                 className={cn(
                   "flex items-center justify-between py-3.5 rounded-2xl transition-all",
-                  isSidebarOpen ? "px-4" : "px-3 group-hover:px-4",
+                  isSidebarOpen ? "px-4" : "px-3 justify-center",
                   isActive 
                     ? "bg-purple-600 text-white shadow-xl shadow-purple-100 scale-[1.02]" 
                     : "text-gray-500 hover:bg-gray-50 hover:text-purple-600"
                 )}
               >
-                <div className="flex items-center gap-4 w-52">
+                <div className={cn(
+                  "flex items-center gap-4",
+                  isSidebarOpen ? "w-52" : "w-auto justify-center"
+                )}>
                   <div className="flex-shrink-0 flex items-center justify-center w-6">
                     <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
                   </div>
-                  <span className={cn(
-                    "text-sm font-bold tracking-tight whitespace-nowrap transition-opacity duration-300",
-                    isActive ? "text-white" : "text-gray-600",
-                    isSidebarOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                  )}>
-                    {item.name}
-                  </span>
+                  {isSidebarOpen && (
+                    <span className={cn(
+                      "text-sm font-bold tracking-tight whitespace-nowrap transition-opacity duration-300",
+                      isActive ? "text-white" : "text-gray-600"
+                    )}>
+                      {item.name}
+                    </span>
+                  )}
                 </div>
-                {isActive && (
+                {isActive && isSidebarOpen && (
                   <ChevronRight 
                     size={14} 
-                    className={cn(
-                      "text-white/50 transition-opacity duration-300 shrink-0", 
-                      isSidebarOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                    )} 
+                    className="text-white/50 transition-opacity duration-300 shrink-0" 
                   />
                 )}
               </Link>
@@ -281,33 +285,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               rel="noopener noreferrer"
               className={cn(
                 "w-full flex items-center justify-between py-3.5 mb-4 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-lg shadow-slate-100",
-                isSidebarOpen ? "px-4" : "px-3 group-hover:px-4"
+                isSidebarOpen ? "px-4" : "px-3 justify-center"
               )}
             >
-              <div className="flex items-center gap-4 w-52">
+              <div className={cn(
+                "flex items-center gap-4",
+                isSidebarOpen ? "w-52" : "w-auto justify-center"
+              )}>
                 <div className="flex-shrink-0 flex items-center justify-center w-6">
                   <ExternalLink size={20} className="text-blue-400" />
                 </div>
-                <span className={cn(
-                  "text-sm font-bold tracking-tight whitespace-nowrap transition-opacity duration-300",
-                  isSidebarOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                )}>
-                  Admin Portal
-                </span>
+                {isSidebarOpen && (
+                  <span className="text-sm font-bold tracking-tight whitespace-nowrap transition-opacity duration-300">
+                    Admin Portal
+                  </span>
+                )}
               </div>
-              <ChevronRight 
-                size={14} 
-                className={cn(
-                  "text-white/30 transition-opacity duration-300 shrink-0", 
-                  isSidebarOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                )} 
-              />
+              {isSidebarOpen && (
+                <ChevronRight 
+                  size={14} 
+                  className="text-white/30 transition-opacity duration-300 shrink-0" 
+                />
+              )}
             </a>
           )}
 
           <div className={cn(
             "bg-gray-50 rounded-2xl flex items-center gap-3 mb-4 transition-all duration-300 overflow-hidden relative",
-            isSidebarOpen ? "p-4 w-auto" : "p-2 group-hover:p-4 w-[48px] group-hover:w-auto mx-auto group-hover:mx-0"
+            isSidebarOpen ? "p-4 w-auto" : "p-2 w-[48px] mx-auto justify-center"
           )}>
             <input 
               type="file"
@@ -341,27 +346,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 "bg-emerald-500"
               )} title="Database Connected" />
             </label>
-            <div className={cn(
-              "flex-1 min-w-0 transition-opacity duration-300",
-              isSidebarOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-            )}>
-              <p className="text-sm font-bold text-gray-900 truncate">{profile.displayName || profile.email}</p>
-              <p className="text-[10px] text-purple-500 font-bold uppercase tracking-widest truncate">{profile.role}</p>
-            </div>
+            {isSidebarOpen && (
+              <div className="flex-1 min-w-0 transition-opacity duration-300">
+                <p className="text-sm font-bold text-gray-900 truncate">{profile.displayName || profile.email}</p>
+                <p className="text-[10px] text-purple-500 font-bold uppercase tracking-widest truncate">{profile.role}</p>
+              </div>
+            )}
           </div>
           <button 
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all font-bold text-sm overflow-hidden"
+            className={cn(
+              "w-full flex items-center gap-3 py-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all font-bold text-sm overflow-hidden",
+              isSidebarOpen ? "px-3" : "justify-center"
+            )}
           >
             <div className="flex-shrink-0 flex items-center justify-center w-6">
               <LogOut size={18} />
             </div>
-            <span className={cn(
-              "whitespace-nowrap transition-opacity duration-300",
-              isSidebarOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-            )}>
-              Sign Out
-            </span>
+            {isSidebarOpen && (
+              <span className="whitespace-nowrap transition-opacity duration-300">
+                Sign Out
+              </span>
+            )}
           </button>
         </div>
       </aside>

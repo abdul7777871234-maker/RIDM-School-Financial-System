@@ -167,6 +167,14 @@
   opacity: 1 !important;
 }
 
+/* Fix for unreadable backgrounds in section badges and headers */
+.theme-color div:nth-of-type(2) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > form:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2),
+.theme-color div:nth-of-type(2) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > form:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) {
+  background-color: rgba(0, 0, 0, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
 /* Glass box fix for sidebar profile section and other targeted containers */
 .theme-color div:nth-of-type(2) > aside#dashboard-sidebar:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1),
 .theme-color aside .bg-gray-50,
@@ -236,13 +244,66 @@
 .theme-dark button {
   box-shadow: none !important;
   text-shadow: none !important;
+  outline: none !important;
 }
 
 .theme-color button.gradient-bg,
 .theme-color button[class*="gradient-bg"],
 .theme-dark button.gradient-bg,
 .theme-dark button[class*="gradient-bg"] {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Fix sidebar alignment when collapsed */
+.theme-color aside:not(.w-72),
+.theme-dark aside:not(.w-72) {
+  align-items: center !important;
+}
+
+.theme-color aside nav,
+.theme-dark aside nav {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+}
+
+/* Ensure the green online dot is vibrant in all themes */
+.bg-green-500,
+.theme-color .bg-green-500,
+.theme-dark .bg-green-500 {
+  background-color: #10b981 !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4) !important;
+}
+
+/* Dark Theme Shadow Neutralization - Remove white/light glows */
+.theme-dark .shadow-sm,
+.theme-dark .shadow-md,
+.theme-dark .shadow-lg,
+.theme-dark .shadow-xl,
+.theme-dark .shadow-2xl,
+.theme-dark [class*="shadow-purple-"],
+.theme-dark [class*="shadow-slate-"] {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Ensure online dot is always visible and has high contrast border */
+.theme-color .bg-emerald-500,
+.theme-dark .bg-emerald-500,
+.theme-color .bg-green-500,
+.theme-dark .bg-green-500 {
+  background-color: #10b981 !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Ensure consistent alignment of sidebar items when collapsed */
+aside:not(.w-72) nav a,
+aside:not(.w-72) .bg-gray-50 {
+  justify-content: center !important;
+}
+
+aside:not(.w-72) .w-52 {
+  width: auto !important;
+  justify-content: center !important;
 }
 
 /* High contrast readability of status badges inside the color theme */
