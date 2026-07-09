@@ -7,7 +7,13 @@ console.log('Supabase initialized with URL:', supabaseUrl);
 
 // If Supabase is not configured, provide a mock client that satisfies the interface
 export const supabase = (supabaseUrl && supabaseAnonKey)
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        storage: typeof window !== 'undefined' ? window.sessionStorage : undefined,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
+    })
   : ({
       auth: {
         getSession: async () => ({ data: { session: null }, error: null }),

@@ -158,7 +158,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
   }, [profile]);
 
-  if (loading || !profile) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!profile) return null;
 
   const adminPortalUrl = process.env.NEXT_PUBLIC_ADMIN_PORTAL_URL;
 
