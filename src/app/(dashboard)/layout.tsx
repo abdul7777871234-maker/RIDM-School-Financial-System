@@ -20,15 +20,20 @@ import {
   RotateCcw,
   ExternalLink,
   Menu,
-  X
+  X,
+  Sun,
+  Moon,
+  Palette
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getSettings } from '@/lib/localDb';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { profile, loading, updateProfilePhoto } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const [schoolSettings, setSchoolSettings] = React.useState({
     schoolName: 'RIDM Student Financial System',
@@ -172,7 +177,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const adminPortalUrl = process.env.NEXT_PUBLIC_ADMIN_PORTAL_URL;
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-blue-500/5 flex overflow-x-hidden">
+    <div className={cn(
+      "min-h-screen flex overflow-x-hidden transition-all duration-300",
+      theme === 'color' 
+        ? "bg-gradient-to-r from-[#1e1b4b] via-[#581c87] to-[#6b21a8] text-white" 
+        : theme === 'dark' 
+        ? "bg-[#0c0d1b] text-gray-100" 
+        : "bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-blue-500/5"
+    )}>
       {/* Mobile Sidebar Backdrop */}
       {isSidebarOpen && (
         <div 
@@ -359,31 +371,120 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         "flex-1 transition-all duration-300 min-w-0 overflow-x-hidden max-w-full",
         isSidebarOpen ? "ml-0 lg:ml-72" : "ml-0 lg:ml-20"
       )}>
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-40">
+        <header className={cn(
+          "h-20 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-40 transition-all duration-300",
+          theme === 'color' 
+            ? "bg-white/5 backdrop-blur-md border-b border-white/10 text-white"
+            : theme === 'dark'
+            ? "bg-[#111226]/85 backdrop-blur-md border-b border-white/5 text-gray-100"
+            : "bg-white/80 backdrop-blur-md border-b border-gray-100"
+        )}>
           <div className="flex items-center gap-4 text-sm text-gray-400 font-medium">
              {/* Sidebar Hamburger / Close Toggle Button */}
              <button
                id="sidebar-toggle-btn"
                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-               className="p-2 -ml-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all flex items-center justify-center cursor-pointer"
+               className={cn(
+                 "p-2 -ml-2 rounded-xl transition-all flex items-center justify-center cursor-pointer",
+                 theme === 'color'
+                   ? "text-white/80 hover:text-white hover:bg-white/10"
+                   : theme === 'dark'
+                   ? "text-gray-300 hover:text-white hover:bg-white/5"
+                   : "text-gray-500 hover:text-purple-600 hover:bg-purple-50"
+               )}
                aria-label="Toggle Sidebar"
              >
                {isSidebarOpen ? <X size={22} /> : <Menu size={22} />}
              </button>
-             <span className="capitalize hidden sm:inline">{pathname.split('/')[1] || 'Dashboard'}</span>
+             <span className={cn(
+               "capitalize hidden sm:inline",
+               theme === 'color' ? "text-white/60" : "text-gray-400"
+             )}>{pathname.split('/')[1] || 'Dashboard'}</span>
              <ChevronRight size={14} className="hidden sm:inline" />
-             <span className="text-gray-900 font-bold hidden sm:inline">{pathname === '/' ? 'Overview' : 'View All'}</span>
-             <span className="text-gray-900 font-bold sm:hidden capitalize">{pathname.split('/')[1] || 'Overview'}</span>
+             <span className={cn(
+               "font-bold hidden sm:inline",
+               theme === 'color' ? "text-white" : "text-gray-900"
+             )}>{pathname === '/' ? 'Overview' : 'View All'}</span>
+             <span className={cn(
+               "font-bold sm:hidden capitalize",
+               theme === 'color' ? "text-white" : "text-gray-900"
+             )}>{pathname.split('/')[1] || 'Overview'}</span>
           </div>
           <div className="flex items-center gap-6">
+            {/* Beautiful Segmented Pill Theme Switcher */}
+            <div className={cn(
+              "flex items-center p-1 rounded-xl border transition-all duration-300 shadow-xs",
+              theme === 'color'
+                ? "bg-white/10 border-white/15"
+                : theme === 'dark'
+                ? "bg-[#1a1b35] border-white/5"
+                : "bg-gray-100 border-gray-200/50"
+            )}>
+              <button
+                onClick={() => setTheme('light')}
+                className={cn(
+                  "px-2 sm:px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer",
+                  theme === 'light' 
+                    ? "bg-white text-gray-900 shadow-xs font-black" 
+                    : theme === 'color'
+                    ? "text-white/60 hover:text-white hover:bg-white/5"
+                    : "text-gray-400 hover:text-gray-200"
+                )}
+                title="Light Mode"
+              >
+                <Sun size={13} className="text-amber-500 shrink-0" />
+                <span className="hidden md:inline">Light</span>
+              </button>
+              <button
+                onClick={() => setTheme('dark')}
+                className={cn(
+                  "px-2 sm:px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer",
+                  theme === 'dark' 
+                    ? "bg-purple-600 text-white shadow-xs font-black" 
+                    : theme === 'color'
+                    ? "text-white/60 hover:text-white hover:bg-white/5"
+                    : "text-gray-400 hover:text-gray-900"
+                )}
+                title="Dark Mode"
+              >
+                <Moon size={13} className="text-blue-400 shrink-0" />
+                <span className="hidden md:inline">Dark</span>
+              </button>
+              <button
+                onClick={() => setTheme('color')}
+                className={cn(
+                  "px-2 sm:px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer",
+                  theme === 'color' 
+                    ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-xs font-black" 
+                    : "text-gray-400 hover:text-gray-900"
+                )}
+                title="Color Mode"
+              >
+                <Palette size={13} className="text-pink-400 shrink-0" />
+                <span className="hidden md:inline">Color</span>
+              </button>
+            </div>
+
             <div className="text-right">
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">System Date</p>
-              <p className="text-sm font-black text-gray-900 flex flex-col sm:flex-row sm:items-center justify-end gap-0.5 sm:gap-1.5">
-                <span className="text-[10px] sm:text-sm text-gray-500 sm:text-gray-900 font-medium sm:font-black">
+              <p className={cn(
+                "text-[10px] font-bold uppercase tracking-widest",
+                theme === 'color' ? "text-white/55" : "text-gray-400"
+              )}>System Date</p>
+              <p className={cn(
+                "text-sm font-black flex flex-col sm:flex-row sm:items-center justify-end gap-0.5 sm:gap-1.5",
+                theme === 'color' ? "text-white" : "text-gray-900"
+              )}>
+                <span className={cn(
+                  "text-[10px] sm:text-sm font-medium sm:font-black",
+                  theme === 'color' ? "text-white/90" : "text-gray-500 sm:text-gray-900"
+                )}>
                   {currentDate || 'Loading Date...'}
                 </span>
-                <span className="text-gray-300 hidden sm:inline">•</span>
-                <span className="text-xs sm:text-sm font-black text-gray-900 shrink-0">
+                <span className={cn("hidden sm:inline", theme === 'color' ? "text-white/30" : "text-gray-300")}>•</span>
+                <span className={cn(
+                  "text-xs sm:text-sm font-black shrink-0",
+                  theme === 'color' ? "text-white" : "text-gray-900"
+                )}>
                   {currentTime || 'Loading Time...'}
                 </span>
               </p>

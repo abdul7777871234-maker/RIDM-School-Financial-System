@@ -9,7 +9,7 @@
 
 @layer base {
   body {
-    @apply font-sans text-gray-900 bg-gray-50;
+    @apply font-sans text-gray-900 bg-gray-50 transition-colors duration-300;
   }
 }
 
@@ -17,4 +17,431 @@
   .gradient-bg {
     @apply bg-linear-to-br from-brand-purple via-brand-pink to-brand-red;
   }
+}
+
+/* ==========================================================================
+   COLOR THEME (Indigo-Purple Gradient with Glassmorphism)
+   ========================================================================== */
+.theme-color {
+  background: linear-gradient(to right, #1e1b4b 0%, #581c87 50%, #6b21a8 100%) !important;
+  color: #ffffff !important;
+}
+
+.theme-color body {
+  background: linear-gradient(to right, #1e1b4b 0%, #581c87 50%, #6b21a8 100%) !important;
+  color: #ffffff !important;
+}
+
+/* Layout containers */
+.theme-color div.min-h-screen,
+.theme-color main {
+  background: transparent !important;
+}
+
+/* Glassmorphic Cards & Panels & Containers (Only match actual card containers) */
+.theme-color .bg-white.rounded-3xl,
+.theme-color .bg-white.rounded-\[1\.5rem\],
+.theme-color .bg-white.rounded-\[2\.5rem\],
+.theme-color .bg-white.rounded-2xl,
+.theme-color .bg-white.rounded-xl,
+.theme-color [id="standalone-student-registration-form"] {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Sidebar and Header overrides */
+.theme-color #dashboard-sidebar,
+.theme-color aside {
+  background-color: rgba(20, 18, 54, 0.8) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2) !important;
+}
+
+.theme-color header {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+/* Forms and Input Fields across the app - optimized for maximum contrast and readability */
+.theme-color input,
+.theme-color select,
+.theme-color textarea {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.theme-color input::placeholder,
+.theme-color textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.theme-color input:focus,
+.theme-color select:focus,
+.theme-color textarea:focus {
+  border-color: rgba(255, 255, 255, 0.8) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3) !important;
+  background-color: rgba(0, 0, 0, 0.45) !important;
+}
+
+.theme-color select option,
+.theme-color select optgroup {
+  background-color: #3b0764 !important;
+  color: #ffffff !important;
+}
+
+/* Tables */
+.theme-color table {
+  color: #ffffff !important;
+}
+
+.theme-color tr {
+  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.theme-color tr:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-color thead tr,
+.theme-color tr.bg-gray-50\/50,
+.theme-color tr[class*="bg-gray-50"] {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-color th {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Text overrides to ensure great contrast and readability */
+.theme-color p,
+.theme-color h1,
+.theme-color h2,
+.theme-color h3,
+.theme-color h4,
+.theme-color h5,
+.theme-color h6,
+.theme-color label,
+.theme-color td,
+.theme-color th,
+.theme-color select,
+.theme-color .font-medium,
+.theme-color .font-bold,
+.theme-color .font-black {
+  color: #ffffff !important;
+}
+
+/* Specific button shadow fixes to remove "white glow" */
+.theme-color .shadow-sm,
+.theme-color .shadow-md,
+.theme-color .shadow-lg,
+.theme-color .shadow-xl,
+.theme-color .shadow-2xl,
+.theme-color .shadow-purple-100,
+.theme-color .shadow-purple-200,
+.theme-color .shadow-slate-100,
+.theme-color [class*="shadow-purple-"],
+.theme-color [class*="shadow-slate-"] {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* User-specific readability fixes for targeted elements */
+.theme-color div:nth-of-type(2) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > form:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1) {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  opacity: 1 !important;
+}
+
+/* Glass box fix for sidebar profile section and other targeted containers */
+.theme-color div:nth-of-type(2) > aside#dashboard-sidebar:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1),
+.theme-color aside .bg-gray-50,
+.theme-color div[class*="bg-gray-50"] {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Ensure sidebar icons and text are readable in color theme */
+.theme-color aside nav a {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.theme-color aside nav a.bg-purple-600 {
+  background-color: rgba(147, 51, 234, 0.8) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.theme-color span:not(.text-green-700):not(.text-emerald-700):not(.text-amber-700):not(.text-rose-700):not(.text-red-700):not(.text-blue-700):not(.text-indigo-700):not([class*="text-green"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-blue"]):not([class*="text-indigo"]) {
+  color: #ffffff !important;
+}
+
+.theme-color .text-gray-900,
+.theme-color .text-gray-800,
+.theme-color .text-gray-700,
+.theme-color .text-gray-600,
+.theme-color .text-gray-500,
+.theme-color .text-gray-400,
+.theme-color .text-slate-900,
+.theme-color .text-slate-800,
+.theme-color .text-slate-700,
+.theme-color .text-slate-600 {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.theme-color .text-gray-400,
+.theme-color .text-gray-500,
+.theme-color .text-slate-400,
+.theme-color .text-slate-500 {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.theme-color .text-purple-600,
+.theme-color .text-purple-500,
+.theme-color .text-indigo-600 {
+  color: #f472b6 !important; /* Stand out accent */
+}
+
+/* Sidebar navigation item overrides */
+.theme-color aside a {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.theme-color aside a:hover,
+.theme-color aside a.active,
+.theme-color aside a[class*="text-purple-600"] {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+/* No glowing white lights or light outlines on buttons across the application */
+.theme-color button,
+.theme-dark button {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.theme-color button.gradient-bg,
+.theme-color button[class*="gradient-bg"],
+.theme-dark button.gradient-bg,
+.theme-dark button[class*="gradient-bg"] {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* High contrast readability of status badges inside the color theme */
+.theme-color .bg-green-50,
+.theme-color .bg-emerald-50,
+.theme-color [class*="bg-green-"],
+.theme-color [class*="bg-emerald-"] {
+  background-color: rgba(16, 185, 129, 0.18) !important;
+  border: 1px solid rgba(16, 185, 129, 0.4) !important;
+}
+.theme-color .text-green-700,
+.theme-color .text-green-600,
+.theme-color .text-emerald-700,
+.theme-color .text-emerald-600,
+.theme-color [class*="text-green-"],
+.theme-color [class*="text-emerald-"] {
+  color: #34d399 !important;
+}
+
+.theme-color .bg-amber-50,
+.theme-color .bg-yellow-50,
+.theme-color [class*="bg-amber-"],
+.theme-color [class*="bg-yellow-"] {
+  background-color: rgba(245, 158, 11, 0.18) !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+}
+.theme-color .text-amber-700,
+.theme-color .text-amber-600,
+.theme-color .text-yellow-700,
+.theme-color .text-yellow-600,
+.theme-color [class*="text-amber-"],
+.theme-color [class*="text-yellow-"] {
+  color: #fbbf24 !important;
+}
+
+.theme-color .bg-red-50,
+.theme-color .bg-rose-50,
+.theme-color [class*="bg-red-"],
+.theme-color [class*="bg-rose-"] {
+  background-color: rgba(244, 63, 94, 0.18) !important;
+  border: 1px solid rgba(244, 63, 94, 0.4) !important;
+}
+.theme-color .text-red-700,
+.theme-color .text-red-600,
+.theme-color .text-rose-700,
+.theme-color .text-rose-600,
+.theme-color [class*="text-red-"],
+.theme-color [class*="text-rose-"] {
+  color: #f87171 !important;
+}
+
+.theme-color .bg-blue-50,
+.theme-color .bg-indigo-50,
+.theme-color [class*="bg-blue-"],
+.theme-color [class*="bg-indigo-"] {
+  background-color: rgba(59, 130, 246, 0.18) !important;
+  border: 1px solid rgba(59, 130, 246, 0.4) !important;
+}
+.theme-color .text-blue-700,
+.theme-color .text-blue-600,
+.theme-color .text-indigo-700,
+.theme-color .text-indigo-600,
+.theme-color [class*="text-blue-"],
+.theme-color [class*="text-indigo-"] {
+  color: #60a5fa !important;
+}
+
+
+/* ==========================================================================
+   DARK THEME (Rich Midnight Palette)
+   ========================================================================== */
+.theme-dark {
+  background-color: #0c0d1b !important;
+  color: #f3f4f6 !important;
+}
+
+.theme-dark body {
+  background-color: #0c0d1b !important;
+  color: #f3f4f6 !important;
+}
+
+.theme-dark div.min-h-screen,
+.theme-dark main {
+  background-color: #0c0d1b !important;
+}
+
+/* Cards & Containers in Dark Mode (Only match actual card containers) */
+.theme-dark .bg-white.rounded-3xl,
+.theme-dark .bg-white.rounded-\[1\.5rem\],
+.theme-dark .bg-white.rounded-\[2\.5rem\],
+.theme-dark .bg-white.rounded-2xl,
+.theme-dark .bg-white.rounded-xl,
+.theme-dark div[id="standalone-student-registration-form"] {
+  background-color: #14162e !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: #f3f4f6 !important;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Sidebar and Header overrides in Dark Mode */
+.theme-dark #dashboard-sidebar,
+.theme-dark aside {
+  background-color: #0f1022 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.theme-dark header {
+  background-color: #111226 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  color: #f3f4f6 !important;
+}
+
+/* Forms in Dark Mode */
+.theme-dark input,
+.theme-dark select,
+.theme-dark textarea {
+  background-color: #1a1b35 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+
+.theme-dark select option,
+.theme-dark select optgroup {
+  background-color: #14162e !important;
+  color: #ffffff !important;
+}
+
+/* Tables in Dark Mode */
+.theme-dark table {
+  color: #e5e7eb !important;
+}
+
+.theme-dark tr {
+  border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.theme-dark tr:hover {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+.theme-dark thead tr,
+.theme-dark tr.bg-gray-50\/50,
+.theme-dark tr[class*="bg-gray-50"] {
+  background-color: #181933 !important;
+}
+
+.theme-dark th {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Text overrides in Dark Mode */
+.theme-dark p,
+.theme-dark span,
+.theme-dark h1,
+.theme-dark h2,
+.theme-dark h3,
+.theme-dark h4,
+.theme-dark h5,
+.theme-dark h6,
+.theme-dark label,
+.theme-dark td,
+.theme-dark div {
+  color: #e5e7eb;
+}
+
+.theme-dark .text-gray-900,
+.theme-dark .text-gray-800,
+.theme-dark .text-slate-900,
+.theme-dark .text-slate-800 {
+  color: #ffffff !important;
+}
+
+.theme-dark .text-gray-700,
+.theme-dark .text-gray-600,
+.theme-dark .text-slate-700,
+.theme-dark .text-slate-600 {
+  color: #d1d5db !important;
+}
+
+.theme-dark .text-gray-500,
+.theme-dark .text-gray-400,
+.theme-dark .text-slate-500,
+.theme-dark .text-slate-400 {
+  color: #9ca3af !important;
+}
+
+.theme-dark .text-purple-600,
+.theme-dark .text-purple-500 {
+  color: #c084fc !important;
+}
+
+.theme-dark aside a {
+  color: #9ca3af !important;
+}
+
+.theme-dark aside a:hover,
+.theme-dark aside a.active,
+.theme-dark aside a[class*="text-purple-600"] {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
 }

@@ -241,7 +241,7 @@ export default function AddStudent() {
 
           <div className="space-y-6 pt-6 border-t border-gray-100">
             <h3 className="font-bold text-gray-900 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs">02</span>
+              <span className="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center text-xs">02</span>
               Parental Information
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
