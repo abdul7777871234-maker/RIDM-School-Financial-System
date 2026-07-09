@@ -172,7 +172,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const adminPortalUrl = process.env.NEXT_PUBLIC_ADMIN_PORTAL_URL;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-blue-500/5 flex overflow-x-hidden">
       {/* Mobile Sidebar Backdrop */}
       {isSidebarOpen && (
         <div 

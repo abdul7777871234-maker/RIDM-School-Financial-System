@@ -49,7 +49,7 @@ export default function Login() {
 
   return (
     <div 
-      className="min-h-screen bg-gradient-to-br from-purple-700 via-purple-600 to-blue-700 flex items-center justify-center p-6 relative overflow-hidden"
+      className="min-h-screen bg-gradient-to-r from-[#1e1b4b] via-[#581c87] to-[#6b21a8] flex items-center justify-center p-6 relative overflow-hidden"
     >
       {/* Islamic Pattern Overlay */}
       <div 
@@ -60,9 +60,9 @@ export default function Login() {
         }} 
       />
       
-      <div className="absolute top-0 left-0 w-full h-full bg-linear-to-br from-purple-800/30 to-blue-900/30 -z-10" />
-      <div className="absolute -top-24 -left-24 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-purple-800/10 via-pink-800/10 to-blue-900/10 -z-10" />
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-gradient-to-r from-pink-500/20 to-blue-500/20 rounded-full blur-3xl animate-pulse" />
 
       <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center z-10 basis-full">
         {/* Branding & Visual column */}
